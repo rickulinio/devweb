@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "axios": "^1.16.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "git": "^0.1.5",
+    "node-fetch": "^3.3.2"
+  },
+  "name": "vastweb",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000v\u0000a\u0000s\u0000t\u0000w\u0000e\u0000b\u0000\r\u0000 \u0000",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rickulinio/vastrp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rickulinio/vastrp/issues"
+  },
+  "homepage": "https://github.com/rickulinio/vastrp#readme"
+}
