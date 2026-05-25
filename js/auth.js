@@ -1,7 +1,7 @@
 /* ================= CONFIG ================= */
 
 const CLIENT_ID = "1480598374024483012";
-const BASE_URL = "https://rickulinio.github.io/devweb/";
+const BASE_URL = "https://rickulinio.github.io/devweb/index.html";
 
 /* ================= STORAGE ================= */
 
@@ -105,6 +105,8 @@ function buildUserData(user) {
 
 async function handleLogin() {
 
+  console.log("HASH:", window.location.hash);
+
   const token = getTokenFromHash();
 
   /* jeśli nie ma tokena */
@@ -143,7 +145,13 @@ async function handleLogin() {
 
   } finally {
 
-    cleanUrl();
+function cleanUrl() {
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname
+  );
+}
 
     triggerAuthUpdate();
   }
@@ -159,5 +167,7 @@ window.addEventListener("DOMContentLoaded", () => {
     loginBtn.href = getDiscordLoginURL();
   }
 
-  handleLogin();
+  setTimeout(() => {
+    handleLogin();
+  }, 50); // 🔥 FIX RACE CONDITION
 });
