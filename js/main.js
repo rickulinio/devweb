@@ -1,6 +1,3 @@
-window.addEventListener("focus", updateAuthUI);
-window.addEventListener("pageshow", updateAuthUI);
-
 let progress = 0;
 
 const progressText = document.querySelector(".loader-progress-text");
@@ -277,17 +274,13 @@ function updateAuthUI() {
   }
 }
 
-window.addEventListener("load", () => {
-  updateAuthUI();
-});
+updateAuthUI();
 
 window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
   if (e.key === "user") updateAuthUI();
 });
-
-window.addEventListener("auth:update", updateAuthUI);
 
 /* ================= PARTICLES ================= */
 const canvas = document.getElementById("particles");
@@ -363,14 +356,3 @@ if (canvas && ctx) {
 
   animate();
 }
-
-function safeAuthRefresh() {
-  setTimeout(() => {
-    updateAuthUI();
-  }, 50);
-}
-
-window.addEventListener("auth:update", safeAuthRefresh);
-window.addEventListener("focus", safeAuthRefresh);
-window.addEventListener("pageshow", safeAuthRefresh);
-window.addEventListener("load", safeAuthRefresh);
