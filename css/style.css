@@ -2205,7 +2205,7 @@ body {
     transform: scale(.92) translateY(10px);
   }
 }
-
+/*USER LOGOWANIE*/
 .user-dropdown {
   position: relative;
   display: inline-block;
@@ -2252,14 +2252,15 @@ body {
   position: absolute;
   right: 0;
   top: 110%;
-  min-width: 160px;
 
+  min-width: 160px;
   background: rgba(15,15,20,0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
 
   padding: 10px;
+
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
@@ -2267,16 +2268,11 @@ body {
   transition: 0.2s ease;
 }
 
-.user-dropdown:hover .user-menu {
+/* AKTYWNY STAN (klik) */
+.user-dropdown.active .user-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
-}
-
-.user-id {
-  font-size: 11px;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 8px;
 }
 
 .logout-btn {

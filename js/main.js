@@ -220,41 +220,28 @@ function updateAuthUI() {
   const loginBtn = $("loginBtn");
   const userBox = $("user");
 
-  /* NIE ZALOGOWANY */
   if (!user || !user.id) {
-
     loginBtn?.style && (loginBtn.style.display = "inline-flex");
-
-    if (userBox) {
-      userBox.innerHTML = "";
-    }
-
+    if (userBox) userBox.innerHTML = "";
     return;
   }
 
-  /* ZALOGOWANY */
-  if (loginBtn) {
-    loginBtn.style.display = "none";
-  }
+  if (loginBtn) loginBtn.style.display = "none";
 
   if (userBox) {
 
     userBox.innerHTML = `
-      <div class="user-dropdown">
+      <div class="user-dropdown" id="userDropdown">
 
-        <div class="user-trigger">
-
+        <div class="user-trigger" id="userTrigger">
           <img
             src="${user.avatar}"
             class="user-avatar"
             alt="${user.username}"
           >
-
         </div>
 
         <div class="user-menu">
-          <div class="user-id">ID: ${user.id}</div>
-
           <button id="logoutBtn" class="logout-btn">
             Wyloguj
           </button>
@@ -263,6 +250,21 @@ function updateAuthUI() {
       </div>
     `;
 
+    const dropdown = document.getElementById("userDropdown");
+    const trigger = document.getElementById("userTrigger");
+
+    // TOGGLE MENU (klik zamiast hover)
+    trigger?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("active");
+    });
+
+    // zamykanie po kliknięciu gdziekolwiek
+    document.addEventListener("click", () => {
+      dropdown?.classList.remove("active");
+    });
+
+    // logout
     document
       .getElementById("logoutBtn")
       ?.addEventListener("click", logout);
