@@ -1,26 +1,10 @@
+window.addEventListener("focus", updateAuthUI);
+window.addEventListener("pageshow", updateAuthUI);
+
 let progress = 0;
 
 const progressText = document.querySelector(".loader-progress-text");
 const loader = document.getElementById("loader");
-
-/* ================= SAFE AUTH REFRESH ================= */
-
-function safeAuthRefresh() {
-  // mały delay = fix mobile + redirect OAuth bug
-  setTimeout(() => {
-    if (typeof updateAuthUI === "function") {
-      updateAuthUI();
-    }
-  }, 50);
-}
-
-/* ważne eventy (mobile + desktop) */
-window.addEventListener("load", safeAuthRefresh);
-window.addEventListener("focus", safeAuthRefresh);
-window.addEventListener("pageshow", safeAuthRefresh);
-window.addEventListener("auth:update", safeAuthRefresh);
-
-/* ================= LOADER ================= */
 
 const interval = setInterval(() => {
   progress += Math.floor(Math.random() * 8) + 2;
@@ -49,11 +33,9 @@ window.addEventListener("load", () => {
 });
 
 /* ================= HELPER ================= */
-
 const $ = (id) => document.getElementById(id);
 
 /* ================= FACTIONS ================= */
-
 const fg = $("factions-grid");
 
 if (fg && Array.isArray(FACTIONS)) {
@@ -84,7 +66,6 @@ if (fg && Array.isArray(FACTIONS)) {
 }
 
 /* ================= TEAM ================= */
-
 const tg = $("team-grid");
 
 if (tg && Array.isArray(TEAM)) {
@@ -101,14 +82,12 @@ if (tg && Array.isArray(TEAM)) {
 }
 
 /* ================= NAV ================= */
-
 window.addEventListener("scroll", () => {
   const nav = $("nav");
   if (nav) nav.classList.toggle("scrolled", scrollY > 20);
 });
 
 /* ================= COUNTERS ================= */
-
 function countUp(el, to, dur) {
   if (!el) return;
 
@@ -128,7 +107,6 @@ setTimeout(() => {
 }, 300);
 
 /* ================= REVEAL ================= */
-
 const obs = new IntersectionObserver((entries) => {
   entries.forEach((e, i) => {
     if (e.isIntersecting) {
@@ -140,7 +118,6 @@ const obs = new IntersectionObserver((entries) => {
 document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
 
 /* ================= RULES ================= */
-
 const ruleItems = document.querySelectorAll(".rule-item");
 
 if (ruleItems.length) {
@@ -159,7 +136,6 @@ if (ruleItems.length) {
 }
 
 /* ================= KEY ================= */
-
 document.querySelectorAll(".key").forEach(key => {
   key.addEventListener("click", () => {
     key.classList.toggle("show");
@@ -168,7 +144,6 @@ document.querySelectorAll(".key").forEach(key => {
 });
 
 /* ================= MOBILE MENU ================= */
-
 const navToggle = $("navToggle");
 const mobileMenu = $("mobileMenu");
 const mobileOverlay = $("mobileOverlay");
@@ -196,7 +171,6 @@ document.querySelectorAll(".mobile-menu a").forEach(a => {
 });
 
 /* ================= CURSOR ================= */
-
 const glow = document.querySelector(".cursor-glow");
 
 if (glow) {
@@ -209,7 +183,6 @@ if (glow) {
 }
 
 /* ================= MAGNETIC ================= */
-
 document.querySelectorAll(".btn-lg").forEach(btn => {
   btn.addEventListener("mousemove", e => {
     const r = btn.getBoundingClientRect();
@@ -224,7 +197,7 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
   });
 });
 
-/* ================= AUTH UI ================= */
+/* ================= AUTH UI (ONLY SOURCE) ================= */
 
 function getUser() {
   try {
@@ -236,6 +209,7 @@ function getUser() {
 
 function logout() {
   localStorage.removeItem("user");
+
   updateAuthUI();
   window.dispatchEvent(new Event("auth:update"));
 }
@@ -259,7 +233,11 @@ function updateAuthUI() {
       <div class="user-dropdown" id="userDropdown">
 
         <div class="user-trigger" id="userTrigger">
-          <img src="${user.avatar}" class="user-avatar" />
+          <img
+            src="${user.avatar}"
+            class="user-avatar"
+            alt="${user.username}"
+          >
         </div>
 
         <div class="user-menu">
@@ -275,15 +253,23 @@ function updateAuthUI() {
     const trigger = document.getElementById("userTrigger");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // OPEN / CLOSE dropdown
     trigger?.addEventListener("click", (e) => {
       e.stopPropagation();
-      dropdown?.classList.toggle("active");
+      dropdown.classList.toggle("active");
     });
 
+    // klik poza = zamyka
     document.addEventListener("click", () => {
       dropdown?.classList.remove("active");
     });
 
+    // STOP bubbling na menu (żeby klik nie zamykał od razu)
+    document.querySelector(".user-menu")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // LOGOUT (NAJWAŻNIEJSZE)
     logoutBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       logout();
@@ -291,13 +277,19 @@ function updateAuthUI() {
   }
 }
 
-window.addEventListener("load", updateAuthUI);
+window.addEventListener("load", () => {
+  updateAuthUI();
+});
+
+window.addEventListener("auth:update", updateAuthUI);
+
 window.addEventListener("storage", (e) => {
   if (e.key === "user") updateAuthUI();
 });
 
-/* ================= PARTICLES ================= */
+window.addEventListener("auth:update", updateAuthUI);
 
+/* ================= PARTICLES ================= */
 const canvas = document.getElementById("particles");
 const ctx = canvas?.getContext("2d");
 
@@ -371,3 +363,14 @@ if (canvas && ctx) {
 
   animate();
 }
+
+function safeAuthRefresh() {
+  setTimeout(() => {
+    updateAuthUI();
+  }, 50);
+}
+
+window.addEventListener("auth:update", safeAuthRefresh);
+window.addEventListener("focus", safeAuthRefresh);
+window.addEventListener("pageshow", safeAuthRefresh);
+window.addEventListener("load", safeAuthRefresh);
