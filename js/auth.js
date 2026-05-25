@@ -1,5 +1,5 @@
 const CLIENT_ID = "1480598374024483012";
-const BASE_URL = "https://rickulinio.github.io/vast/";
+const BASE_URL = "https://rickulinio.github.io/devweb/";
 
 /* STORAGE */
 function saveUser(user) {
