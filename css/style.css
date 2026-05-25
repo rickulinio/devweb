@@ -2293,3 +2293,17 @@ body {
   background: rgba(255,80,80,0.15);
   transform: scale(1.02);
 }
+
+.user-menu {
+  z-index: 999;
+}
+
+.user-dropdown {
+  position: relative;
+  z-index: 1000;
+}
+
+.user-trigger {
+  z-index: 1001;
+  position: relative;
+}

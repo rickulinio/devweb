@@ -208,19 +208,17 @@ function logout() {
   localStorage.removeItem("user");
 
   updateAuthUI();
-
   window.dispatchEvent(new Event("auth:update"));
 }
 
 function updateAuthUI() {
-
   const user = getUser();
 
   const loginBtn = $("loginBtn");
   const userBox = $("user");
 
   if (!user || !user.id) {
-    loginBtn?.style && (loginBtn.style.display = "inline-flex");
+    if (loginBtn) loginBtn.style.display = "inline-flex";
     if (userBox) userBox.innerHTML = "";
     return;
   }
@@ -228,7 +226,6 @@ function updateAuthUI() {
   if (loginBtn) loginBtn.style.display = "none";
 
   if (userBox) {
-
     userBox.innerHTML = `
       <div class="user-dropdown" id="userDropdown">
 
@@ -251,43 +248,38 @@ function updateAuthUI() {
 
     const dropdown = document.getElementById("userDropdown");
     const trigger = document.getElementById("userTrigger");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-    // TOGGLE MENU (klik avatar)
+    // OPEN / CLOSE dropdown
     trigger?.addEventListener("click", (e) => {
       e.stopPropagation();
       dropdown.classList.toggle("active");
     });
 
-    // klik w menu NIE zamyka od razu
-    dropdown?.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-
-    // klik poza → zamknij
+    // klik poza = zamyka
     document.addEventListener("click", () => {
       dropdown?.classList.remove("active");
     });
 
-    // logout
-    document
-      .getElementById("logoutBtn")
-      ?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        logout();
-      });
+    // STOP bubbling na menu (żeby klik nie zamykał od razu)
+    document.querySelector(".user-menu")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // LOGOUT (NAJWAŻNIEJSZE)
+    logoutBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      logout();
+    });
   }
 }
 
-/* INIT AUTH */
 updateAuthUI();
 
-/* SYNC */
 window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
-  if (e.key === "user") {
-    updateAuthUI();
-  }
+  if (e.key === "user") updateAuthUI();
 });
 
 /* ================= PARTICLES ================= */
