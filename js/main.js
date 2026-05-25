@@ -221,12 +221,9 @@ function updateAuthUI() {
   const userBox = $("user");
 
   /* NIE ZALOGOWANY */
-
   if (!user || !user.id) {
 
-    if (loginBtn) {
-      loginBtn.style.display = "inline-flex";
-    }
+    loginBtn?.style && (loginBtn.style.display = "inline-flex");
 
     if (userBox) {
       userBox.innerHTML = "";
@@ -236,7 +233,6 @@ function updateAuthUI() {
   }
 
   /* ZALOGOWANY */
-
   if (loginBtn) {
     loginBtn.style.display = "none";
   }
@@ -244,22 +240,25 @@ function updateAuthUI() {
   if (userBox) {
 
     userBox.innerHTML = `
-      <div class="user-pill">
+      <div class="user-dropdown">
 
-        <img
-          src="${user.avatar}"
-          class="user-avatar"
-          alt="${user.username}"
-        >
+        <div class="user-trigger">
 
-        <div class="user-meta">
-          <span class="user-name">${user.username}</span>
-          <span class="user-id">ID: ${user.id}</span>
+          <img
+            src="${user.avatar}"
+            class="user-avatar"
+            alt="${user.username}"
+          >
+
         </div>
 
-        <button id="logoutBtn">
-          Wyloguj
-        </button>
+        <div class="user-menu">
+          <div class="user-id">ID: ${user.id}</div>
+
+          <button id="logoutBtn" class="logout-btn">
+            Wyloguj
+          </button>
+        </div>
 
       </div>
     `;

@@ -140,13 +140,6 @@ body::after {
   overflow: hidden;
 }
 
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
 /* GRID */
 .grid {
   position: absolute;
@@ -2211,4 +2204,96 @@ body {
     opacity: 0;
     transform: scale(.92) translateY(10px);
   }
+}
+
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  transition: 0.2s;
+}
+
+.user-trigger:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #7c5cff;
+  object-fit: cover;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.user-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  min-width: 160px;
+
+  background: rgba(15,15,20,0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+
+  padding: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+
+  transition: 0.2s ease;
+}
+
+.user-dropdown:hover .user-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-id {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+
+  border: 1px solid rgba(255,80,80,0.3);
+  background: rgba(255,80,80,0.08);
+
+  color: #ff6b6b;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background: rgba(255,80,80,0.15);
+  transform: scale(1.02);
 }
