@@ -1,11 +1,56 @@
 /* ───────── OPEN MODAL ───────── */
 
+const APP_COOLDOWN_HOURS = 24;
+
+function getCooldownKey(key) {
+  return `appCooldown_${key}`;
+}
+
+function hasCooldown(key) {
+  const saved = localStorage.getItem(getCooldownKey(key));
+
+  if (!saved) return false;
+
+  const expires = Number(saved);
+
+  if (Date.now() > expires) {
+    localStorage.removeItem(getCooldownKey(key));
+    return false;
+  }
+
+  return true;
+}
+
+function getRemainingTime(key) {
+  const saved = localStorage.getItem(getCooldownKey(key));
+
+  if (!saved) return null;
+
+  const diff = Number(saved) - Date.now();
+
+  if (diff <= 0) return null;
+
+  const hours = Math.floor(diff / 1000 / 60 / 60);
+  const minutes = Math.floor((diff / 1000 / 60) % 60);
+
+  return `${hours}h ${minutes}m`;
+}
+
+function setCooldown(key) {
+  const expires = Date.now() + APP_COOLDOWN_HOURS * 60 * 60 * 1000;
+
+  localStorage.setItem(getCooldownKey(key), expires);
+}
+
 function openModal(key) {
   const faction = FACTIONS.find(f => f.key === key);
   if (!faction) return;
 
   const modalBox = document.getElementById("modalBox");
   const sections = faction.questions || [];
+
+  const cooldown = hasCooldown(key);
+  const remaining = getRemainingTime(key);
 
   modalBox.innerHTML = `
     <div class="modal-head">
@@ -19,14 +64,26 @@ function openModal(key) {
 
     <div class="modal-body">
       <div class="modal-tabs">
-        ${sections.map((s, i) => `<button class="modal-tab ${i === 0 ? "active" : ""}" data-tab="${s.section}">${s.section}</button>`).join("")}
+        ${sections.map((s, i) => `
+          <button 
+            class="modal-tab ${i === 0 ? "active" : ""}" 
+            data-tab="${s.section}"
+          >
+            ${s.section}
+          </button>
+        `).join("")}
       </div>
 
       ${sections.map((s, i) => `
-        <div class="modal-section ${i === 0 ? "active" : ""}" data-section="${s.section}">
+        <div 
+          class="modal-section ${i === 0 ? "active" : ""}" 
+          data-section="${s.section}"
+        >
           ${s.items.map(q => `
             <div class="fg">
-              <label class="fl">${q.label}${q.required ? " *" : ""}</label>
+              <label class="fl">
+                ${q.label}${q.required ? " *" : ""}
+              </label>
 
               ${q.type === "textarea"
                 ? `
@@ -34,6 +91,7 @@ function openModal(key) {
                     class="fta"
                     id="m-${q.id}"
                     ${q.required ? "required" : ""}
+                    ${cooldown ? "disabled" : ""}
                   ></textarea>
                 `
                 : `
@@ -41,6 +99,7 @@ function openModal(key) {
                     class="fi"
                     id="m-${q.id}"
                     ${q.required ? "required" : ""}
+                    ${cooldown ? "disabled" : ""}
                   >
                 `
               }
@@ -49,8 +108,18 @@ function openModal(key) {
         </div>
       `).join("")}
 
-      <button class="fsub-btn" id="m-sub" onclick="sendApp('${key}')">Wyślij Podanie</button>
-      <div class="f-alert" id="m-alert"></div>
+      <button 
+        class="fsub-btn" 
+        id="m-sub" 
+        onclick="sendApp('${key}')"
+        ${cooldown ? "disabled" : ""}
+      >
+        ${cooldown ? `Cooldown: ${remaining}` : "Wyślij Podanie"}
+      </button>
+
+      <div class="f-alert" id="m-alert">
+        ${cooldown ? `Możesz wysłać kolejne podanie za ${remaining}.` : ""}
+      </div>
     </div>
   `;
 
@@ -70,8 +139,11 @@ function initTabs() {
     tab.onclick = () => {
       const target = tab.dataset.tab;
 
-      modal.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
-      modal.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active"));
+      modal.querySelectorAll(".modal-tab")
+        .forEach(t => t.classList.remove("active"));
+
+      modal.querySelectorAll(".modal-section")
+        .forEach(s => s.classList.remove("active"));
 
       tab.classList.add("active");
 
@@ -83,6 +155,8 @@ function initTabs() {
 }
 
 async function sendApp(key) {
+  if (hasCooldown(key)) return;
+
   const faction = FACTIONS.find(f => f.key === key);
   if (!faction) return;
 
@@ -154,7 +228,19 @@ async function sendApp(key) {
     });
 
     if (res.ok || res.status === 204) {
+      setCooldown(key);
+
       btn.textContent = "Wysłano ✓";
+
+      alert.className = "f-alert success";
+      alert.textContent = "Podanie zostało wysłane.";
+
+      /* ───────── AUTO CLOSE AFTER 2s ───────── */
+
+      setTimeout(() => {
+        closeModal();
+      }, 2000);
+
     } else {
       throw new Error();
     }
@@ -164,7 +250,7 @@ async function sendApp(key) {
     alert.textContent = "Błąd wysyłki";
 
     btn.disabled = false;
-    btn.textContent = "Wyślij";
+    btn.textContent = "Wyślij Podanie";
   }
 }
 
