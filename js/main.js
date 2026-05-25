@@ -207,6 +207,7 @@ function getUser() {
 
 function logout() {
   localStorage.removeItem("user");
+
   updateAuthUI();
   window.dispatchEvent(new Event("auth:update"));
 }
@@ -228,13 +229,21 @@ function updateAuthUI() {
   if (userBox) {
     userBox.innerHTML = `
       <div class="user-dropdown" id="userDropdown">
+
         <div class="user-trigger" id="userTrigger">
-          <img src="${user.avatar}" class="user-avatar" alt="${user.username}">
+          <img
+            src="${user.avatar}"
+            class="user-avatar"
+            alt="${user.username}"
+          >
         </div>
 
         <div class="user-menu">
-          <button id="logoutBtn" class="logout-btn">Wyloguj</button>
+          <button id="logoutBtn" class="logout-btn">
+            Wyloguj
+          </button>
         </div>
+
       </div>
     `;
 
@@ -242,15 +251,23 @@ function updateAuthUI() {
     const trigger = document.getElementById("userTrigger");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // OPEN / CLOSE dropdown
     trigger?.addEventListener("click", (e) => {
       e.stopPropagation();
       dropdown.classList.toggle("active");
     });
 
+    // klik poza = zamyka
     document.addEventListener("click", () => {
       dropdown?.classList.remove("active");
     });
 
+    // STOP bubbling na menu (żeby klik nie zamykał od razu)
+    document.querySelector(".user-menu")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // LOGOUT (NAJWAŻNIEJSZE)
     logoutBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       logout();
