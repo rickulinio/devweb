@@ -195,7 +195,6 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
 });
 
 /* ================= AUTH UI (ONLY SOURCE) ================= */
-/* ================= AUTH UI (ONLY SOURCE) ================= */
 
 function getUser() {
   try {
@@ -253,13 +252,18 @@ function updateAuthUI() {
     const dropdown = document.getElementById("userDropdown");
     const trigger = document.getElementById("userTrigger");
 
-    // TOGGLE MENU (klik zamiast hover)
+    // TOGGLE MENU (klik avatar)
     trigger?.addEventListener("click", (e) => {
       e.stopPropagation();
       dropdown.classList.toggle("active");
     });
 
-    // zamykanie po kliknięciu gdziekolwiek
+    // klik w menu NIE zamyka od razu
+    dropdown?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // klik poza → zamknij
     document.addEventListener("click", () => {
       dropdown?.classList.remove("active");
     });
@@ -267,16 +271,17 @@ function updateAuthUI() {
     // logout
     document
       .getElementById("logoutBtn")
-      ?.addEventListener("click", logout);
+      ?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        logout();
+      });
   }
 }
 
 /* INIT AUTH */
-
 updateAuthUI();
 
 /* SYNC */
-
 window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
