@@ -105,26 +105,18 @@ function buildUserData(user) {
 
 async function handleLogin() {
 
-  console.log("HASH:", window.location.hash);
-
   const token = getTokenFromHash();
 
-  /* jeśli nie ma tokena */
   if (!token) {
-
     const savedUser = getSavedUser();
 
     if (savedUser?.id) {
       triggerAuthUpdate();
     }
-
     return;
   }
 
   try {
-
-    console.log("Discord login start...");
-
     const discordUser = await fetchDiscordUser(token);
 
     if (!discordUser?.id) {
@@ -135,25 +127,12 @@ async function handleLogin() {
 
     saveUser(userData);
 
-    console.log("Saved user:", userData);
+    cleanUrl();
+    triggerAuthUpdate();
 
   } catch (err) {
-
     console.error("AUTH ERROR:", err);
-
     clearUser();
-
-  } finally {
-
-function cleanUrl() {
-  window.history.replaceState(
-    {},
-    document.title,
-    window.location.pathname
-  );
-}
-
-    triggerAuthUpdate();
   }
 }
 
