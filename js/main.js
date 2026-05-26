@@ -197,12 +197,27 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
 });
 
 /* ================= AUTH UI ================= */
+/* ================= AUTH UI ================= */
 function getUser() {
+  const raw = localStorage.getItem("user");
+
+  if (!raw || raw === "undefined" || raw === "null") {
+    return null;
+  }
+
   try {
-    return JSON.parse(localStorage.getItem("user") || "null");
+    return JSON.parse(raw);
   } catch {
     return null;
   }
+}
+
+function saveUser(userData) {
+  if (!userData) return;
+
+  localStorage.setItem("user", JSON.stringify(userData));
+
+  window.dispatchEvent(new Event("auth:update"));
 }
 
 function logout() {
@@ -210,6 +225,10 @@ function logout() {
 
   updateAuthUI();
   window.dispatchEvent(new Event("auth:update"));
+
+  setTimeout(() => {
+    window.location.reload();
+  }, 100);
 }
 
 function updateAuthUI() {
@@ -262,12 +281,12 @@ function updateAuthUI() {
       dropdown?.classList.remove("active");
     });
 
-    // STOP bubbling na menu (żeby klik nie zamykał od razu)
+    // STOP bubbling na menu
     document.querySelector(".user-menu")?.addEventListener("click", (e) => {
       e.stopPropagation();
     });
 
-    // LOGOUT (NAJWAŻNIEJSZE)
+    // LOGOUT
     logoutBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       logout();
@@ -275,12 +294,41 @@ function updateAuthUI() {
   }
 }
 
+/* AUTO SAVE USER FROM URL PARAMS */
+(function () {
+  const params = new URLSearchParams(window.location.search);
+
+  const id = params.get("id");
+  const username = params.get("username");
+  const avatar = params.get("avatar");
+
+  if (id && username) {
+    saveUser({
+      id,
+      username,
+      avatar
+    });
+
+    updateAuthUI();
+
+    // usuwa parametry z URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // odświeżenie
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }
+})();
+
 updateAuthUI();
 
 window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
-  if (e.key === "user") updateAuthUI();
+  if (e.key === "user") {
+    updateAuthUI();
+  }
 });
 
 /* ================= PARTICLES ================= */
