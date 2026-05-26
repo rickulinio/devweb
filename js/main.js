@@ -1,7 +1,5 @@
-window.addEventListener("focus", updateAuthUI);
-window.addEventListener("pageshow", updateAuthUI);
-
 let progress = 0;
+
 const progressText = document.querySelector(".loader-progress-text");
 const loader = document.getElementById("loader");
 
@@ -43,17 +41,22 @@ if (fg && Array.isArray(FACTIONS)) {
     el.className = "faction-card reveal";
     el.style.setProperty("--fc", f.color);
 
-    el.innerHTML =
-      `<div class="fc-top">
+    el.innerHTML = `
+      <div class="fc-top">
         <div class="fc-icon">${f.icon}</div>
         <div class="fc-name">${f.name}</div>
       </div>
+
       <p class="fc-desc">${f.desc}</p>
-      <button class="fc-cta"
+
+      <button
+        class="fc-cta"
         style="background:${f.color}18;border-color:${f.color}30;"
-        onclick="openModal('${f.key}')">
+        onclick="openModal('${f.key}')"
+      >
         Złóż Podanie →
-      </button>`;
+      </button>
+    `;
 
     fg.appendChild(el);
   });
@@ -67,10 +70,11 @@ if (tg && Array.isArray(TEAM)) {
     const div = document.createElement("div");
     div.className = "team-card reveal";
 
-    div.innerHTML =
-      `<img src="${m.image}" class="team-av">
-       <div class="team-name">${m.name}</div>
-       <div class="team-role">${m.role}</div>`;
+    div.innerHTML = `
+      <img src="${m.image}" class="team-av">
+      <div class="team-name">${m.name}</div>
+      <div class="team-role">${m.role}</div>
+    `;
 
     tg.appendChild(div);
   });
@@ -170,10 +174,10 @@ const glow = document.querySelector(".cursor-glow");
 
 if (glow) {
   window.addEventListener("mousemove", e => {
-    glow.animate(
-      { left: `${e.clientX}px`, top: `${e.clientY}px` },
-      { duration: 300, fill: "forwards" }
-    );
+    glow.animate({
+      left: `${e.clientX}px`,
+      top: `${e.clientY}px`
+    }, { duration: 300, fill: "forwards" });
   });
 }
 
@@ -192,9 +196,7 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
   });
 });
 
-/* ================= AUTH UI (ONLY SOURCE) ================= */
 /* ================= AUTH UI ================= */
-
 function getUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
@@ -205,16 +207,17 @@ function getUser() {
 
 function logout() {
   localStorage.removeItem("user");
-  window.dispatchEvent(new Event("auth:update"));
   updateAuthUI();
+  window.dispatchEvent(new Event("auth:update"));
 }
 
 function updateAuthUI() {
   const user = getUser();
-  const loginBtn = document.getElementById("loginBtn");
-  const userBox = document.getElementById("user");
 
-  if (!user?.id) {
+  const loginBtn = $("loginBtn");
+  const userBox = $("user");
+
+  if (!user || !user.id) {
     if (loginBtn) loginBtn.style.display = "inline-flex";
     if (userBox) userBox.innerHTML = "";
     return;
@@ -226,8 +229,9 @@ function updateAuthUI() {
     userBox.innerHTML = `
       <div class="user-dropdown" id="userDropdown">
         <div class="user-trigger" id="userTrigger">
-          <img src="${user.avatar}" class="user-avatar" />
+          <img src="${user.avatar}" class="user-avatar" alt="${user.username}">
         </div>
+
         <div class="user-menu">
           <button id="logoutBtn" class="logout-btn">Wyloguj</button>
         </div>
@@ -254,22 +258,20 @@ function updateAuthUI() {
   }
 }
 
-/* ================= SAFE REFRESH ================= */
+updateAuthUI();
 
-function safeAuthRefresh() {
-  setTimeout(updateAuthUI, 0);
-}
+window.addEventListener("auth:update", updateAuthUI);
 
-window.addEventListener("auth:update", safeAuthRefresh);
-window.addEventListener("focus", safeAuthRefresh);
-window.addEventListener("pageshow", safeAuthRefresh);
-window.addEventListener("load", safeAuthRefresh);
+window.addEventListener("storage", (e) => {
+  if (e.key === "user") updateAuthUI();
+});
 
 /* ================= PARTICLES ================= */
 const canvas = document.getElementById("particles");
 const ctx = canvas?.getContext("2d");
 
 if (canvas && ctx) {
+
   let mouse = { x: null, y: null };
 
   window.addEventListener("mousemove", e => {
@@ -305,6 +307,7 @@ if (canvas && ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const p of particles) {
+
       if (mouse.x !== null) {
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
@@ -319,6 +322,7 @@ if (canvas && ctx) {
 
       p.x += p.dx + p.fx;
       p.y += p.dy + p.fy;
+
       p.fx *= 0.92;
       p.fy *= 0.92;
 
@@ -335,10 +339,4 @@ if (canvas && ctx) {
   }
 
   animate();
-}
-
-function safeAuthRefresh() {
-  setTimeout(() => {
-    updateAuthUI();
-  }, 50);
 }
