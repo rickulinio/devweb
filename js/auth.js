@@ -36,29 +36,17 @@ function getDiscordLoginURL() {
 /* ================= TOKEN SAFE PARSER ================= */
 
 function getToken() {
-  // 1. hash (Discord standard)
-  const hash = window.location.hash;
+  // Przechwytywanie z fragmentu URL (Discord standard)
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get("access_token");
 
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.slice(1));
-    const token = params.get("access_token");
-
-    if (token) {
-      sessionStorage.setItem("discord_token", token);
-      return token;
-    }
+  if (token) {
+    sessionStorage.setItem("discord_token", token);
+    return token;
   }
 
-  // 2. fallback (czasem Discord lub GitHub zmienia flow)
-  const urlParams = new URLSearchParams(window.location.search);
-  const tokenFromQuery = urlParams.get("access_token");
-
-  if (tokenFromQuery) {
-    sessionStorage.setItem("discord_token", tokenFromQuery);
-    return tokenFromQuery;
-  }
-
-  // 3. persistent fallback
+  // Sprawdzenie czy jest w sesji (jeśli już wcześniej pobraliśmy)
   return sessionStorage.getItem("discord_token");
 }
 
@@ -82,6 +70,8 @@ async function fetchDiscordUser(token) {
 
 /* ================= LOGIN FLOW ================= */
 
+/* ================= LOGIN FLOW ================= */
+
 async function handleLogin() {
   const token = getToken();
 
@@ -102,28 +92,36 @@ async function handleLogin() {
     };
 
     saveUser(userData);
-
     triggerAuthUpdate();
 
-    // 🔥 WAŻNE: usuń hash po zapisaniu
     setTimeout(() => {
       history.replaceState(null, "", window.location.pathname);
     }, 0);
 
   } catch (e) {
     console.error("AUTH ERROR:", e);
+    
+    // --- WSTAW TO W TYM MIEJSCU ---
+    if (e.message.includes("401")) {
+      console.warn("Token wygasł, wylogowuję...");
+      clearUser();
+      sessionStorage.removeItem("discord_token");
+    }
+    // ------------------------------
+    
     clearUser();
   }
 }
 
 /* ================= INIT ================= */
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => { // Zmieniono z DOMContentLoaded na load
   const loginBtn = document.getElementById("loginBtn");
 
   if (loginBtn) {
     loginBtn.href = getDiscordLoginURL();
   }
 
+  // Wymuszamy sprawdzenie tokena przy starcie strony
   handleLogin();
 });
