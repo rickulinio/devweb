@@ -1,7 +1,7 @@
 /* ================= CONFIG ================= */
 
 const CLIENT_ID = "1480598374024483012";
-const REDIRECT_URI = "https://rickulinio.github.io/devweb/";
+const REDIRECT_URI = "https://rickulinio.github.io/devweb";
 
 /* ================= STORAGE ================= */
 
@@ -34,8 +34,9 @@ function getDiscordLoginURL() {
     "https://discord.com/oauth2/authorize" +
     `?client_id=${CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-    "&response_type=token&scope=identify&prompt=none" +
-    "&scope=identify"
+    "&response_type=token" +
+    "&scope=identify" +
+    "&prompt=none"
   );
 }
 
@@ -43,6 +44,7 @@ function getDiscordLoginURL() {
 
 function getAccessToken() {
   const hash = window.location.hash;
+  console.log("HASH:", hash); // 🔥 DEBUG
   if (!hash) return null;
 
   return new URLSearchParams(hash.replace("#", "")).get("access_token");
