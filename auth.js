@@ -34,7 +34,7 @@ function getDiscordLoginURL() {
     "https://discord.com/oauth2/authorize" +
     `?client_id=${CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-    "&response_type=token" +
+    "&response_type=token&scope=identify&prompt=none" +
     "&scope=identify"
   );
 }
