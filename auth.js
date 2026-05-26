@@ -11,7 +11,7 @@ function saveUser(user) {
 
 function getUser() {
   try {
-    return JSON.parse(localStorage.getItem("user") || "null");
+    return JSON.parse(localStorage.getItem("user"));
   } catch {
     return null;
   }
@@ -24,17 +24,12 @@ function clearUser() {
 /* ================= URL ================= */
 
 function cleanUrl() {
-  history.replaceState(
-    {},
-    document.title,
-    window.location.pathname
-  );
+  history.replaceState({}, document.title, window.location.pathname);
 }
 
 /* ================= LOGIN URL ================= */
 
 function getDiscordLoginURL() {
-
   return (
     "https://discord.com/oauth2/authorize" +
     `?client_id=${CLIENT_ID}` +
@@ -47,141 +42,78 @@ function getDiscordLoginURL() {
 /* ================= TOKEN ================= */
 
 function getAccessToken() {
-
   const hash = window.location.hash;
-
   if (!hash) return null;
 
-  const params = new URLSearchParams(
-    hash.replace("#", "")
-  );
-
-  return params.get("access_token");
+  return new URLSearchParams(hash.replace("#", "")).get("access_token");
 }
 
-/* ================= FETCH USER ================= */
+/* ================= FETCH ================= */
 
-async function fetchDiscordUser(token) {
-
-  const res = await fetch(
-    "https://discord.com/api/users/@me",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+async function fetchUser(token) {
+  const res = await fetch("https://discord.com/api/users/@me", {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-  );
+  });
 
-  if (!res.ok) {
-    throw new Error(
-      `Discord API Error ${res.status}`
-    );
-  }
+  if (!res.ok) throw new Error("Discord API error");
 
-  return await res.json();
+  return res.json();
 }
 
-/* ================= BUILD USER ================= */
+/* ================= BUILD ================= */
 
-function buildUser(discordUser) {
-
-  const defaultAvatar =
-    Number(discordUser.discriminator || 0) % 5;
+function buildUser(u) {
+  const fallback = Number(u.discriminator || 0) % 5;
 
   return {
-    id: discordUser.id,
-
-    username:
-      discordUser.global_name ||
-      discordUser.username,
-
-    avatar: discordUser.avatar
-      ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png?size=256`
-      : `https://cdn.discordapp.com/embed/avatars/${defaultAvatar}.png`
+    id: u.id,
+    username: u.global_name || u.username,
+    avatar: u.avatar
+      ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
+      : `https://cdn.discordapp.com/embed/avatars/${fallback}.png`
   };
 }
 
-/* ================= LOGIN ================= */
+/* ================= MAIN LOGIN ================= */
 
 async function login() {
 
-  // już zalogowany
   const saved = getUser();
+  const token = getAccessToken();
 
+  // 1. jeśli już jest user → NIE ROBIMY NIC
   if (saved?.id) {
-    window.dispatchEvent(
-      new Event("auth:update")
-    );
+    window.dispatchEvent(new Event("auth:update"));
     return;
   }
 
-  // token z discorda
-  const token = getAccessToken();
-
+  // 2. jeśli brak tokena → stop
   if (!token) return;
 
   try {
 
-    const discordUser =
-      await fetchDiscordUser(token);
+    const discordUser = await fetchUser(token);
+    const user = buildUser(discordUser);
 
-    const user =
-      buildUser(discordUser);
-
-    // save
     saveUser(user);
-
-    // clean hash
     cleanUrl();
 
-    // update ui
-    window.dispatchEvent(
-      new Event("auth:update")
-    );
+    window.dispatchEvent(new Event("auth:update"));
 
-    // refresh
-    location.reload();
-
-  } catch (err) {
-
-    console.error(err);
-
+  } catch (e) {
+    console.error("AUTH ERROR:", e);
     clearUser();
   }
 }
 
-/* ================= INIT ================= */
+/* ================= INIT (TYLKO RAZ) ================= */
 
 window.addEventListener("DOMContentLoaded", () => {
 
-  const loginBtn =
-    document.getElementById("loginBtn");
-
-  if (loginBtn) {
-    loginBtn.href =
-      getDiscordLoginURL();
-  }
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) loginBtn.href = getDiscordLoginURL();
 
   login();
-});
-
-/* ================= INIT ================= */
-
-window.addEventListener("load", async () => {
-
-  const loginBtn =
-    document.getElementById("loginBtn");
-
-  if (loginBtn) {
-    loginBtn.href =
-      getDiscordLoginURL();
-  }
-
-  await login();
-
-  setTimeout(() => {
-    window.dispatchEvent(
-      new Event("auth:update")
-    );
-  }, 200);
 });

@@ -290,9 +290,7 @@ function updateAuthUI() {
 
 updateAuthUI();
 
-window.addEventListener("auth:update", () => {
-  setTimeout(updateAuthUI, 50);
-});
+window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
   if (e.key === "user") {
