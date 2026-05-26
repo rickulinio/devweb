@@ -4,6 +4,7 @@ const APP_COOLDOWN_HOURS = 24;
 let cooldownInterval = null;
 
 function getCooldownKey(key) { return `appCooldown_${key}`; }
+function getDraftKey(key) { return `draft_${key}`; } // Klucz do zapisywania szkiców
 
 function hasCooldown(key) {
   const saved = localStorage.getItem(getCooldownKey(key));
@@ -25,6 +26,7 @@ function getRemainingTime(key) {
 }
 
 function setCooldown(key) {
+  localStorage.removeItem(getDraftKey(key)); // Czyścimy szkic po wysłaniu
   const expires = Date.now() + APP_COOLDOWN_HOURS * 60 * 60 * 1000;
   localStorage.setItem(getCooldownKey(key), expires);
 }
@@ -54,6 +56,7 @@ function openModal(key) {
   if (!faction) return;
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  const draft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
   const modalBox = document.getElementById("modalBox");
   const sections = faction.questions || [];
   const cooldown = hasCooldown(key);
@@ -98,7 +101,7 @@ function openModal(key) {
                   id="m-${q.id}"
                   ${q.required ? "required" : ""}
                   ${(cooldown || isNotLoggedIn) ? "disabled" : ""}
-                ></${q.type === "textarea" ? "textarea" : "input"}>
+                >${draft[q.id] || ""}</${q.type === "textarea" ? "textarea" : "input"}>
               </div>
             `).join("")}
           </div>
@@ -114,6 +117,16 @@ function openModal(key) {
       </div>
     </div>
   `;
+
+  // --- ZAPISYWANIE SZKICU W CZASIE RZECZYWISTYM ---
+  modalBox.querySelectorAll('.fi, .fta').forEach(el => {
+    el.addEventListener('input', () => {
+      const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
+      const fieldId = el.id.replace('m-', '');
+      currentDraft[fieldId] = el.value;
+      localStorage.setItem(getDraftKey(key), JSON.stringify(currentDraft));
+    });
+  });
 
   const modalBg = document.getElementById("modalBg");
   modalBg.classList.remove("closing");
@@ -146,7 +159,6 @@ async function sendApp(key) {
 
   const alert = document.getElementById("m-alert");
   const btn = document.getElementById("m-sub");
-
   alert.textContent = "";
   alert.className = "f-alert";
 
