@@ -36,10 +36,10 @@ function getDiscordLoginURL() {
 /* ================= TOKEN SAFE PARSER ================= */
 
 function getToken() {
-  // 1. try hash
+  // 1. hash (Discord standard)
   const hash = window.location.hash;
 
-  if (hash?.includes("access_token")) {
+  if (hash.includes("access_token")) {
     const params = new URLSearchParams(hash.slice(1));
     const token = params.get("access_token");
 
@@ -49,7 +49,16 @@ function getToken() {
     }
   }
 
-  // 2. fallback sessionStorage
+  // 2. fallback (czasem Discord lub GitHub zmienia flow)
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromQuery = urlParams.get("access_token");
+
+  if (tokenFromQuery) {
+    sessionStorage.setItem("discord_token", tokenFromQuery);
+    return tokenFromQuery;
+  }
+
+  // 3. persistent fallback
   return sessionStorage.getItem("discord_token");
 }
 
