@@ -1,5 +1,7 @@
-let progress = 0;
+window.addEventListener("focus", updateAuthUI);
+window.addEventListener("pageshow", updateAuthUI);
 
+let progress = 0;
 const progressText = document.querySelector(".loader-progress-text");
 const loader = document.getElementById("loader");
 
@@ -41,22 +43,17 @@ if (fg && Array.isArray(FACTIONS)) {
     el.className = "faction-card reveal";
     el.style.setProperty("--fc", f.color);
 
-    el.innerHTML = `
-      <div class="fc-top">
+    el.innerHTML =
+      `<div class="fc-top">
         <div class="fc-icon">${f.icon}</div>
         <div class="fc-name">${f.name}</div>
       </div>
-
       <p class="fc-desc">${f.desc}</p>
-
-      <button
-        class="fc-cta"
+      <button class="fc-cta"
         style="background:${f.color}18;border-color:${f.color}30;"
-        onclick="openModal('${f.key}')"
-      >
+        onclick="openModal('${f.key}')">
         Złóż Podanie →
-      </button>
-    `;
+      </button>`;
 
     fg.appendChild(el);
   });
@@ -70,11 +67,10 @@ if (tg && Array.isArray(TEAM)) {
     const div = document.createElement("div");
     div.className = "team-card reveal";
 
-    div.innerHTML = `
-      <img src="${m.image}" class="team-av">
-      <div class="team-name">${m.name}</div>
-      <div class="team-role">${m.role}</div>
-    `;
+    div.innerHTML =
+      `<img src="${m.image}" class="team-av">
+       <div class="team-name">${m.name}</div>
+       <div class="team-role">${m.role}</div>`;
 
     tg.appendChild(div);
   });
@@ -174,10 +170,10 @@ const glow = document.querySelector(".cursor-glow");
 
 if (glow) {
   window.addEventListener("mousemove", e => {
-    glow.animate({
-      left: `${e.clientX}px`,
-      top: `${e.clientY}px`
-    }, { duration: 300, fill: "forwards" });
+    glow.animate(
+      { left: `${e.clientX}px`, top: `${e.clientY}px` },
+      { duration: 300, fill: "forwards" }
+    );
   });
 }
 
@@ -196,17 +192,10 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
   });
 });
 
-/* ================= AUTH UI ================= */
-/* ================= AUTH UI ================= */
+/* ================= AUTH UI (ONLY SOURCE) ================= */
 function getUser() {
-  const raw = localStorage.getItem("user");
-
-  if (!raw || raw === "undefined" || raw === "null") {
-    return null;
-  }
-
   try {
-    return JSON.parse(raw);
+    return JSON.parse(localStorage.getItem("user") || "null");
   } catch {
     return null;
   }
@@ -214,18 +203,12 @@ function getUser() {
 
 function logout() {
   localStorage.removeItem("user");
-
   updateAuthUI();
   window.dispatchEvent(new Event("auth:update"));
-
-  setTimeout(() => {
-    window.location.reload();
-  }, 100);
 }
 
 function updateAuthUI() {
   const user = getUser();
-
   const loginBtn = $("loginBtn");
   const userBox = $("user");
 
@@ -238,47 +221,33 @@ function updateAuthUI() {
   if (loginBtn) loginBtn.style.display = "none";
 
   if (userBox) {
-    userBox.innerHTML = `
-      <div class="user-dropdown" id="userDropdown">
-
+    userBox.innerHTML =
+      `<div class="user-dropdown" id="userDropdown">
         <div class="user-trigger" id="userTrigger">
-          <img
-            src="${user.avatar}"
-            class="user-avatar"
-            alt="${user.username}"
-          >
+          <img src="${user.avatar}" class="user-avatar" alt="${user.username}">
         </div>
-
         <div class="user-menu">
-          <button id="logoutBtn" class="logout-btn">
-            Wyloguj
-          </button>
+          <button id="logoutBtn" class="logout-btn">Wyloguj</button>
         </div>
-
-      </div>
-    `;
+      </div>`;
 
     const dropdown = document.getElementById("userDropdown");
     const trigger = document.getElementById("userTrigger");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // OPEN / CLOSE dropdown
     trigger?.addEventListener("click", (e) => {
       e.stopPropagation();
       dropdown.classList.toggle("active");
     });
 
-    // klik poza = zamyka
     document.addEventListener("click", () => {
       dropdown?.classList.remove("active");
     });
 
-    // STOP bubbling na menu
     document.querySelector(".user-menu")?.addEventListener("click", (e) => {
       e.stopPropagation();
     });
 
-    // LOGOUT
     logoutBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       logout();
@@ -286,24 +255,23 @@ function updateAuthUI() {
   }
 }
 
-/* AUTO SAVE USER FROM URL PARAMS */
-
-updateAuthUI();
+window.addEventListener("load", () => {
+  updateAuthUI();
+});
 
 window.addEventListener("auth:update", updateAuthUI);
 
 window.addEventListener("storage", (e) => {
-  if (e.key === "user") {
-    updateAuthUI();
-  }
+  if (e.key === "user") updateAuthUI();
 });
+
+window.addEventListener("auth:update", updateAuthUI);
 
 /* ================= PARTICLES ================= */
 const canvas = document.getElementById("particles");
 const ctx = canvas?.getContext("2d");
 
 if (canvas && ctx) {
-
   let mouse = { x: null, y: null };
 
   window.addEventListener("mousemove", e => {
@@ -339,7 +307,6 @@ if (canvas && ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const p of particles) {
-
       if (mouse.x !== null) {
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
@@ -354,7 +321,6 @@ if (canvas && ctx) {
 
       p.x += p.dx + p.fx;
       p.y += p.dy + p.fy;
-
       p.fx *= 0.92;
       p.fy *= 0.92;
 
@@ -372,3 +338,14 @@ if (canvas && ctx) {
 
   animate();
 }
+
+function safeAuthRefresh() {
+  setTimeout(() => {
+    updateAuthUI();
+  }, 50);
+}
+
+window.addEventListener("auth:update", safeAuthRefresh);
+window.addEventListener("focus", safeAuthRefresh);
+window.addEventListener("pageshow", safeAuthRefresh);
+window.addEventListener("load", safeAuthRefresh);
