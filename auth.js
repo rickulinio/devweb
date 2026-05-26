@@ -1,7 +1,8 @@
 /* ================= CONFIG ================= */
 
 const CLIENT_ID = "1480598374024483012";
-const BASE_URL = "https://rickulinio.github.io/devweb/";
+
+const REDIRECT_URI = "https://rickulinio.github.io/devweb/";
 
 /* ================= STORAGE ================= */
 
@@ -9,7 +10,7 @@ function saveUser(user) {
   localStorage.setItem("user", JSON.stringify(user));
 }
 
-function getSavedUser() {
+function getUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
   } catch {
@@ -21,29 +22,7 @@ function clearUser() {
   localStorage.removeItem("user");
 }
 
-/* ================= TOKEN ================= */
-
-function getTokenFromHash() {
-  const hash = window.location.hash.substring(1);
-
-  if (!hash) return null;
-
-  const params = new URLSearchParams(hash);
-
-  return params.get("access_token");
-}
-
-/* ================= CLEAN URL ================= */
-
-function cleanUrl() {
-  window.history.replaceState(
-    {},
-    document.title,
-    window.location.pathname + window.location.search
-  );
-}
-
-/* ================= EVENT ================= */
+/* ================= EVENTS ================= */
 
 function triggerAuthUpdate() {
   window.dispatchEvent(new Event("auth:update"));
@@ -52,67 +31,56 @@ function triggerAuthUpdate() {
 /* ================= LOGIN URL ================= */
 
 function getDiscordLoginURL() {
-  return `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(BASE_URL)}&response_type=token&scope=identify`;
+
+  return `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+
+}
+
+/* ================= TOKEN ================= */
+
+function getToken() {
+
+  if (!window.location.hash) return null;
+
+  const hash = window.location.hash.substring(1);
+
+  const params = new URLSearchParams(hash);
+
+  return params.get("access_token");
 }
 
 /* ================= FETCH USER ================= */
 
 async function fetchDiscordUser(token) {
 
-  const res = await fetch("https://discord.com/api/users/@me", {
-    headers: {
-      Authorization: `Bearer ${token}`
+  const res = await fetch(
+    "https://discord.com/api/users/@me",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     }
-  });
+  );
 
   if (!res.ok) {
-
-    let err = {};
-
-    try {
-      err = await res.json();
-    } catch {}
-
-    throw new Error(
-      err.message || `Discord API Error (${res.status})`
-    );
+    throw new Error("Discord API Error");
   }
 
-  return res.json();
-}
-
-/* ================= USER FORMAT ================= */
-
-function buildUserData(user) {
-
-  const defaultAvatarIndex =
-    Number(user.discriminator || 0) % 5;
-
-  return {
-    id: user.id,
-
-    username: user.global_name ||
-              user.username ||
-              "Discord User",
-
-    avatar: user.avatar
-      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=512`
-      : `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`
-  };
+  return await res.json();
 }
 
 /* ================= LOGIN FLOW ================= */
 
 async function handleLogin() {
 
-  const token = getTokenFromHash();
+  const token = getToken();
 
-  /* jeśli nie ma tokena */
+  /* brak tokena */
   if (!token) {
 
-    const savedUser = getSavedUser();
+    const saved = getUser();
 
-    if (savedUser?.id) {
+    if (saved?.id) {
       triggerAuthUpdate();
     }
 
@@ -121,31 +89,43 @@ async function handleLogin() {
 
   try {
 
-    console.log("Discord login start...");
+    console.log("TOKEN:", token);
 
     const discordUser = await fetchDiscordUser(token);
 
-    if (!discordUser?.id) {
-      throw new Error("Invalid Discord user");
-    }
+    console.log("DISCORD USER:", discordUser);
 
-    const userData = buildUserData(discordUser);
+    const avatar =
+      discordUser.avatar
+        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png?size=512`
+        : `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+    const userData = {
+      id: discordUser.id,
+      username:
+        discordUser.global_name ||
+        discordUser.username,
+      avatar
+    };
+
+    console.log("SAVE USER:", userData);
 
     saveUser(userData);
 
-    console.log("Saved user:", userData);
+    triggerAuthUpdate();
+
+    /* czyścimy hash DOPIERO po wszystkim */
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname
+    );
 
   } catch (err) {
 
-    console.error("AUTH ERROR:", err);
+    console.error("LOGIN ERROR:", err);
 
     clearUser();
-
-  } finally {
-
-    cleanUrl();
-
-    triggerAuthUpdate();
   }
 }
 
