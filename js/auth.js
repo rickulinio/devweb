@@ -33,21 +33,17 @@ function getDiscordLoginURL() {
   )}&response_type=token&scope=identify`;
 }
 
-/* ================= TOKEN SAFE PARSER ================= */
+/* ================= TOKEN PARSER (TYMCZASOWY) ================= */
 
-function getToken() {
-  // Przechwytywanie z fragmentu URL (Discord standard)
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
+function getAndClearToken() {
+  const hash = window.location.hash;
+  if (!hash.includes("access_token")) return null;
+
+  const params = new URLSearchParams(hash.substring(1));
   const token = params.get("access_token");
 
-  if (token) {
-    sessionStorage.setItem("discord_token", token);
-    return token;
-  }
-
-  // Sprawdzenie czy jest w sesji (jeśli już wcześniej pobraliśmy)
-  return sessionStorage.getItem("discord_token");
+  // Token zwracamy tylko do funkcji, nie zapisujemy go w localStorage
+  return token;
 }
 
 /* ================= DISCORD FETCH ================= */
@@ -59,30 +55,28 @@ async function fetchDiscordUser(token) {
     }
   });
 
-  const text = await res.text();
-
   if (!res.ok) {
-    throw new Error(text);
+    throw new Error("401");
   }
 
-  return JSON.parse(text);
+  return await res.json();
 }
 
 /* ================= LOGIN FLOW ================= */
 
-/* ================= LOGIN FLOW ================= */
-
 async function handleLogin() {
-  const token = getToken();
+  const token = getAndClearToken();
 
+  // Jeśli nie ma tokena w URL, kończymy
   if (!token) {
-    if (getUser()?.id) triggerAuthUpdate();
+    triggerAuthUpdate();
     return;
   }
 
   try {
     const discordUser = await fetchDiscordUser(token);
 
+    // Zapisujemy tylko wymagane dane
     const userData = {
       id: discordUser.id,
       username: discordUser.global_name || discordUser.username,
@@ -94,34 +88,23 @@ async function handleLogin() {
     saveUser(userData);
     triggerAuthUpdate();
 
-    setTimeout(() => {
-      history.replaceState(null, "", window.location.pathname);
-    }, 0);
+    // Czyścimy pasek adresu z tokena
+    history.replaceState(null, "", window.location.pathname);
 
   } catch (e) {
     console.error("AUTH ERROR:", e);
-    
-    // --- WSTAW TO W TYM MIEJSCU ---
-    if (e.message.includes("401")) {
-      console.warn("Token wygasł, wylogowuję...");
-      clearUser();
-      sessionStorage.removeItem("discord_token");
-    }
-    // ------------------------------
-    
     clearUser();
   }
 }
 
 /* ================= INIT ================= */
 
-window.addEventListener("load", () => { // Zmieniono z DOMContentLoaded na load
+window.addEventListener("load", () => {
   const loginBtn = document.getElementById("loginBtn");
 
   if (loginBtn) {
     loginBtn.href = getDiscordLoginURL();
   }
 
-  // Wymuszamy sprawdzenie tokena przy starcie strony
   handleLogin();
 });
