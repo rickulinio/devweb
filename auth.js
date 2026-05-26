@@ -164,3 +164,24 @@ window.addEventListener("DOMContentLoaded", () => {
 
   login();
 });
+
+/* ================= INIT ================= */
+
+window.addEventListener("load", async () => {
+
+  const loginBtn =
+    document.getElementById("loginBtn");
+
+  if (loginBtn) {
+    loginBtn.href =
+      getDiscordLoginURL();
+  }
+
+  await login();
+
+  setTimeout(() => {
+    window.dispatchEvent(
+      new Event("auth:update")
+    );
+  }, 200);
+});

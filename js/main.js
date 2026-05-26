@@ -212,14 +212,6 @@ function getUser() {
   }
 }
 
-function saveUser(userData) {
-  if (!userData) return;
-
-  localStorage.setItem("user", JSON.stringify(userData));
-
-  window.dispatchEvent(new Event("auth:update"));
-}
-
 function logout() {
   localStorage.removeItem("user");
 
@@ -298,7 +290,9 @@ function updateAuthUI() {
 
 updateAuthUI();
 
-window.addEventListener("auth:update", updateAuthUI);
+window.addEventListener("auth:update", () => {
+  setTimeout(updateAuthUI, 50);
+});
 
 window.addEventListener("storage", (e) => {
   if (e.key === "user") {
