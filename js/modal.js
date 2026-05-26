@@ -96,12 +96,10 @@ function openModal(key) {
             ${s.items.map(q => `
               <div class="fg">
                 <label class="fl">${q.label}${q.required ? " *" : ""}</label>
-                <${q.type === "textarea" ? "textarea" : "input"}
-                  class="${q.type === "textarea" ? "fta" : "fi"}"
-                  id="m-${q.id}"
-                  ${q.required ? "required" : ""}
-                  ${(cooldown || isNotLoggedIn) ? "disabled" : ""}
-                >${draft[q.id] || ""}</${q.type === "textarea" ? "textarea" : "input"}>
+                ${q.type === "textarea" 
+                  ? `<textarea class="fta" id="m-${q.id}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""}>${draft[q.id] || ""}</textarea>`
+                  : `<input type="text" class="fi" id="m-${q.id}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""} value="${draft[q.id] || ""}">`
+                }
               </div>
             `).join("")}
           </div>
