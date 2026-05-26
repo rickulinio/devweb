@@ -221,20 +221,24 @@ async function sendApp(key) {
     });
   });
 
-  try {
+try {
+    const payload = {
+      content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
+      embeds: [{
+        title: "📋 Podanie",
+        color: parseInt(faction.color.replace("#", ""), 16),
+        thumbnail: { url: user.avatar },
+        fields: fields,
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    console.log("Wysyłane dane:", JSON.stringify(payload)); // ZOBACZ TO W KONSOLI
+
     const res = await fetch(faction.webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
-        embeds: [{
-          title: "📋 Podanie",
-          color: parseInt(faction.color.replace("#", ""), 16),
-          thumbnail: { url: user.avatar },
-          fields: fields,
-          timestamp: new Date().toISOString()
-        }]
-      })
+      body: JSON.stringify(payload)
     });
 
     if (res.ok || res.status === 204) {
@@ -244,12 +248,15 @@ async function sendApp(key) {
       btn.textContent = "Wysłano!";
       setTimeout(() => closeModal(), 3000);
     } else {
-      throw new Error('Status nie jest ok');
+      // TU ZOBACZYMY DOKŁADNY BŁĄD DISCORDA
+      const errorData = await res.text();
+      console.error("Błąd serwera Discord:", errorData);
+      throw new Error(`Status ${res.status}: ${errorData}`);
     }
   } catch (err) {
-    console.error(err);
+    console.error("Szczegóły błędu:", err);
     alert.className = "f-alert err";
-    alert.textContent = "Błąd wysyłki. Sprawdź konsolę (F12).";
+    alert.textContent = "Błąd: " + err.message;
     btn.disabled = false;
   }
 }
