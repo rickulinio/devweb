@@ -193,6 +193,8 @@ document.querySelectorAll(".btn-lg").forEach(btn => {
 });
 
 /* ================= AUTH UI (ONLY SOURCE) ================= */
+/* ================= AUTH UI ================= */
+
 function getUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
@@ -203,16 +205,16 @@ function getUser() {
 
 function logout() {
   localStorage.removeItem("user");
-  updateAuthUI();
   window.dispatchEvent(new Event("auth:update"));
+  updateAuthUI();
 }
 
 function updateAuthUI() {
   const user = getUser();
-  const loginBtn = $("loginBtn");
-  const userBox = $("user");
+  const loginBtn = document.getElementById("loginBtn");
+  const userBox = document.getElementById("user");
 
-  if (!user || !user.id) {
+  if (!user?.id) {
     if (loginBtn) loginBtn.style.display = "inline-flex";
     if (userBox) userBox.innerHTML = "";
     return;
@@ -221,15 +223,16 @@ function updateAuthUI() {
   if (loginBtn) loginBtn.style.display = "none";
 
   if (userBox) {
-    userBox.innerHTML =
-      `<div class="user-dropdown" id="userDropdown">
+    userBox.innerHTML = `
+      <div class="user-dropdown" id="userDropdown">
         <div class="user-trigger" id="userTrigger">
-          <img src="${user.avatar}" class="user-avatar" alt="${user.username}">
+          <img src="${user.avatar}" class="user-avatar" />
         </div>
         <div class="user-menu">
           <button id="logoutBtn" class="logout-btn">Wyloguj</button>
         </div>
-      </div>`;
+      </div>
+    `;
 
     const dropdown = document.getElementById("userDropdown");
     const trigger = document.getElementById("userTrigger");
@@ -244,10 +247,6 @@ function updateAuthUI() {
       dropdown?.classList.remove("active");
     });
 
-    document.querySelector(".user-menu")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-
     logoutBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       logout();
@@ -255,17 +254,16 @@ function updateAuthUI() {
   }
 }
 
-window.addEventListener("load", () => {
-  updateAuthUI();
-});
+/* ================= SAFE REFRESH ================= */
 
-window.addEventListener("auth:update", updateAuthUI);
+function safeAuthRefresh() {
+  setTimeout(updateAuthUI, 0);
+}
 
-window.addEventListener("storage", (e) => {
-  if (e.key === "user") updateAuthUI();
-});
-
-window.addEventListener("auth:update", updateAuthUI);
+window.addEventListener("auth:update", safeAuthRefresh);
+window.addEventListener("focus", safeAuthRefresh);
+window.addEventListener("pageshow", safeAuthRefresh);
+window.addEventListener("load", safeAuthRefresh);
 
 /* ================= PARTICLES ================= */
 const canvas = document.getElementById("particles");
@@ -344,8 +342,3 @@ function safeAuthRefresh() {
     updateAuthUI();
   }, 50);
 }
-
-window.addEventListener("auth:update", safeAuthRefresh);
-window.addEventListener("focus", safeAuthRefresh);
-window.addEventListener("pageshow", safeAuthRefresh);
-window.addEventListener("load", safeAuthRefresh);
