@@ -2316,8 +2316,50 @@ body {
   pointer-events: auto;
 }
 
-.modal-user-profile { display: flex; align-items: center; gap: 12px; margin: 20px 0; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255, 255, 255, 0); }
-.modal-user-profile img { width: 44px; height: 44px; border-radius: 50%; }
-.modal-user-profile .info { display: flex; flex-direction: column; }
-.modal-user-profile .info span { font-size: 0.85em; opacity: 0.6; }
-.login-required { justify-content: center; color: #ff6b6b; font-weight: 500; }
+.modal-user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Wyśrodkowanie w poziomie */
+    gap: 15px;
+    margin: 20px auto; /* Wyśrodkowanie elementu */
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: fit-content; /* Minimalizm: szerokość dopasowana do zawartości */
+}
+
+.modal-user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Delikatna ramka wokół avatara */
+}
+
+.modal-user-profile .info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Tekst wyrównany do lewej wewnątrz wyśrodkowanego bloku */
+}
+
+.modal-user-profile .info strong {
+    font-size: 0.95em;
+    letter-spacing: 0.5px;
+}
+
+.modal-user-profile .info span {
+    font-size: 0.75em;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.login-required {
+    justify-content: center;
+    color: #ff6b6b;
+    font-weight: 500;
+    font-size: 0.9em;
+    padding: 10px;
+    border: none !important;
+    background: transparent !important;
+}

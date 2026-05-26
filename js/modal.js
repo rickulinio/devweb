@@ -79,7 +79,7 @@ function openModal(key) {
             <span>ID: ${user.id}</span>
           </div>
         ` : `
-          <div class="login-msg">⚠️ Aby wysłać podanie, musisz się zalogować.</div>
+          <div class="login-msg">Aby uzupełnić podanie, musisz się zalogować.</div>
         `}
       </div>
 
