@@ -71,15 +71,17 @@ function openModal(key) {
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
 
-      ${user ? `
-        <div class="user-preview" style="display:flex; align-items:center; gap:10px; margin: 15px 0; background:#ffffff05; padding:10px; border-radius:8px;">
-          <img src="${user.avatar}" style="width:40px; height:40px; border-radius:50%;">
-          <div>
-            <div style="font-weight:bold;">${user.username}</div>
-            <div style="font-size:12px; opacity:0.7;">ID: ${user.id}</div>
+      <div class="modal-user-profile ${user ? 'active' : 'login-required'}">
+        ${user ? `
+          <img src="${user.avatar}" alt="Avatar">
+          <div class="info">
+            <strong>${user.username}</strong>
+            <span>ID: ${user.id}</span>
           </div>
-        </div>
-      ` : `<div style="color: #ff4d4d; margin: 15px 0;">⚠️ Musisz się zalogować, aby wysłać podanie!</div>`}
+        ` : `
+          <div class="login-msg">⚠️ Aby wysłać podanie, musisz się zalogować.</div>
+        `}
+      </div>
 
       <div class="modal-body">
         <div class="modal-tabs">
@@ -102,8 +104,8 @@ function openModal(key) {
           </div>
         `).join("")}
 
-        <button class="fsub-btn" id="m-sub" onclick="sendApp('${key}')" ${ (cooldown || isNotLoggedIn) ? "disabled" : ""}>
-          ${cooldown ? `Cooldown: ${remaining}` : (isNotLoggedIn ? "Zaloguj się, aby wysłać" : "Wyślij Podanie")}
+        <button class="fsub-btn" id="m-sub" onclick="sendApp('${key}')" ${(cooldown || isNotLoggedIn) ? "disabled" : ""}>
+          ${cooldown ? `Cooldown: ${remaining}` : (isNotLoggedIn ? "Zaloguj się" : "Wyślij Podanie")}
         </button>
 
         <div class="f-alert" id="m-alert">
@@ -120,6 +122,14 @@ function openModal(key) {
   initTabs();
   if (cooldown) startCooldownUpdater(key);
 }
+
+/* ───────── STYLIZACJA UI (DODAJ DO CSS) ───────── */
+/* .modal-user-profile { display: flex; align-items: center; gap: 12px; margin: 20px 0; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
+.modal-user-profile img { width: 44px; height: 44px; border-radius: 50%; }
+.modal-user-profile .info { display: flex; flex-direction: column; }
+.modal-user-profile .info span { font-size: 0.85em; opacity: 0.6; }
+.login-required { justify-content: center; color: #ff6b6b; font-weight: 500; }
+*/
 
 function initTabs() {
   const modal = document.getElementById("modalBox");
