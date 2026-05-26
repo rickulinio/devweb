@@ -51,6 +51,13 @@ function startCooldownUpdater(key) {
   }, 1000);
 }
 
+// FIX: Dodano brakującą funkcję obsługującą kliknięcie w tło
+function onModalBgClick(e) {
+  if (e.target.id === "modalBg") {
+    closeModal();
+  }
+}
+
 function openModal(key) {
   const faction = FACTIONS.find(f => f.key === key);
   if (!faction) return;
@@ -120,7 +127,6 @@ function openModal(key) {
     </div>
   `;
 
-  // --- LOGIKA LICZNIKA, ZAPISU SZKICU I KOLORÓW ---
   modalBox.querySelectorAll('.fi, .fta').forEach(el => {
     el.addEventListener('input', (e) => {
       const field = e.target;
@@ -129,17 +135,13 @@ function openModal(key) {
       const max = parseInt(field.getAttribute('maxlength'));
       const currentLen = field.value.length;
 
-      // Aktualizacja licznika
       counterSpan.textContent = currentLen;
-      
-      // Ostrzeżenie kolorem (wymaga .limit-reached w CSS)
       if (currentLen > max * 0.9) {
         parent.querySelector('.char-counter').classList.add('limit-reached');
       } else {
         parent.querySelector('.char-counter').classList.remove('limit-reached');
       }
 
-      // Zapis szkicu
       const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
       const fieldId = field.id.replace('m-', '');
       currentDraft[fieldId] = field.value;
@@ -148,6 +150,8 @@ function openModal(key) {
   });
 
   const modalBg = document.getElementById("modalBg");
+  // FIX: Upewnij się, że tło ma przypisaną funkcję
+  modalBg.onclick = onModalBgClick;
   modalBg.classList.remove("closing");
   modalBg.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -219,7 +223,7 @@ async function sendApp(key) {
   try {
     const res = await fetch(faction.webhook, {
       method: "POST",
-      headers: { "Content-Type": "json" }, // Uwaga: w fetch body: JSON.stringify wymaga "application/json"
+      headers: { "Content-Type": "application/json" }, // FIX: Poprawiono typ treści
       body: JSON.stringify({
         content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
         embeds: [{
