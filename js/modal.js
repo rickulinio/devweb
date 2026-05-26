@@ -150,8 +150,6 @@ function openModal(key) {
   });
 
   const modalBg = document.getElementById("modalBg");
-  // FIX: Upewnij się, że tło ma przypisaną funkcję
-  modalBg.onclick = onModalBgClick;
   modalBg.classList.remove("closing");
   modalBg.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -258,4 +256,11 @@ function closeModal() {
     modalBg.classList.remove("closing");
     document.body.style.overflow = "";
   }, 300);
+}
+
+function onModalBgClick(event) {
+  // Sprawdzamy, czy kliknięto bezpośrednio w tło (modalBg), a nie w środek (modalBox)
+  if (event.target.id === 'modalBg') {
+    closeModal();
+  }
 }
