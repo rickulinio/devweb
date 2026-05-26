@@ -178,7 +178,7 @@ async function sendApp(key) {
   }
 
   btn.disabled = true;
-  btn.textContent = "Wysyłanie...";
+  btn.textContent = "Podanie wysłane!";
 
   const fields = [
       { name: "Użytkownik", value: `${user.username}`, inline: true },
