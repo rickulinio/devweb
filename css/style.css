@@ -2363,3 +2363,29 @@ body {
     border: none !important;
     background: transparent !important;
 }
+
+/* Styl dla licznika znaków */
+.char-counter {
+    transition: color 0.3s ease;
+}
+.char-counter.limit-reached {
+    color: #ff4d4d !important;
+}
+
+/* Animacja przycisku wysyłania */
+.fsub-btn {
+    transition: all 0.2s ease;
+}
+.fsub-btn:active {
+    transform: scale(0.98); /* Kliknięcie "wciska" przycisk */
+}
+
+/* Podświetlenie pola po kliknięciu (focus) */
+.fi:focus, .fta:focus {
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+.limit-reached {
+    color: #ff4d4d !important;
+}

@@ -120,17 +120,29 @@ function openModal(key) {
     </div>
   `;
 
-  // --- LOGIKA LICZNIKA I SZKICU ---
+  // --- LOGIKA LICZNIKA, ZAPISU SZKICU I KOLORÓW ---
   modalBox.querySelectorAll('.fi, .fta').forEach(el => {
     el.addEventListener('input', (e) => {
-      // Aktualizacja licznika
-      const parent = e.target.closest('.fg');
-      parent.querySelector('.curr-len').textContent = e.target.value.length;
+      const field = e.target;
+      const parent = field.closest('.fg');
+      const counterSpan = parent.querySelector('.curr-len');
+      const max = parseInt(field.getAttribute('maxlength'));
+      const currentLen = field.value.length;
 
-      // Zapisywanie szkicu
+      // Aktualizacja licznika
+      counterSpan.textContent = currentLen;
+      
+      // Ostrzeżenie kolorem (wymaga .limit-reached w CSS)
+      if (currentLen > max * 0.9) {
+        parent.querySelector('.char-counter').classList.add('limit-reached');
+      } else {
+        parent.querySelector('.char-counter').classList.remove('limit-reached');
+      }
+
+      // Zapis szkicu
       const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
-      const fieldId = el.id.replace('m-', '');
-      currentDraft[fieldId] = el.value;
+      const fieldId = field.id.replace('m-', '');
+      currentDraft[fieldId] = field.value;
       localStorage.setItem(getDraftKey(key), JSON.stringify(currentDraft));
     });
   });
@@ -187,7 +199,7 @@ async function sendApp(key) {
   }
 
   btn.disabled = true;
-  btn.textContent = "Podanie wysłane!";
+  btn.textContent = "Wysyłanie...";
 
   const fields = [
       { name: "Użytkownik", value: `${user.username}`, inline: true },
@@ -207,7 +219,7 @@ async function sendApp(key) {
   try {
     const res = await fetch(faction.webhook, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "json" }, // Uwaga: w fetch body: JSON.stringify wymaga "application/json"
       body: JSON.stringify({
         content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
         embeds: [{
