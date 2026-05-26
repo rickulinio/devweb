@@ -178,16 +178,22 @@ async function sendApp(key) {
 
   const alert = document.getElementById("m-alert");
   const btn = document.getElementById("m-sub");
-  alert.textContent = "";
+  
+  // Reset alertów
+  alert.textContent = "Wysyłanie...";
   alert.className = "f-alert";
 
+  // Walidacja
   let missing = false;
   faction.questions.forEach(section => {
     section.items.forEach(q => {
       const el = document.getElementById(`m-${q.id}`);
       if (el) {
         el.classList.remove("err");
-        if (q.required && !el.value.trim()) { missing = true; el.classList.add("err"); }
+        if (q.required && !el.value.trim()) { 
+          missing = true; 
+          el.classList.add("err"); 
+        }
       }
     });
   });
@@ -199,7 +205,6 @@ async function sendApp(key) {
   }
 
   btn.disabled = true;
-  btn.textContent = "Wysyłanie...";
 
   const fields = [
       { name: "Użytkownik", value: `${user.username}`, inline: true },
@@ -219,14 +224,14 @@ async function sendApp(key) {
   try {
     const res = await fetch(faction.webhook, {
       method: "POST",
-      headers: { "Content-Type": "json" }, // Uwaga: w fetch body: JSON.stringify wymaga "application/json"
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
         embeds: [{
           title: "📋 Podanie",
           color: parseInt(faction.color.replace("#", ""), 16),
           thumbnail: { url: user.avatar },
-          fields,
+          fields: fields,
           timestamp: new Date().toISOString()
         }]
       })
@@ -235,14 +240,17 @@ async function sendApp(key) {
     if (res.ok || res.status === 204) {
       setCooldown(key);
       alert.className = "f-alert success";
-      alert.textContent = "Podanie zostało wysłane.";
-      setTimeout(() => closeModal(), 5000);
-    } else { throw new Error(); }
-  } catch {
+      alert.textContent = "Podanie zostało wysłane!";
+      btn.textContent = "Wysłano!";
+      setTimeout(() => closeModal(), 3000);
+    } else {
+      throw new Error('Status nie jest ok');
+    }
+  } catch (err) {
+    console.error(err);
     alert.className = "f-alert err";
-    alert.textContent = "Błąd wysyłki";
+    alert.textContent = "Błąd wysyłki. Sprawdź konsolę (F12).";
     btn.disabled = false;
-    btn.textContent = "Wyślij Podanie";
   }
 }
 
