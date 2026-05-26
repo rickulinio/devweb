@@ -295,31 +295,6 @@ function updateAuthUI() {
 }
 
 /* AUTO SAVE USER FROM URL PARAMS */
-(function () {
-  const params = new URLSearchParams(window.location.search);
-
-  const id = params.get("id");
-  const username = params.get("username");
-  const avatar = params.get("avatar");
-
-  if (id && username) {
-    saveUser({
-      id,
-      username,
-      avatar
-    });
-
-    updateAuthUI();
-
-    // usuwa parametry z URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    // odświeżenie
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  }
-})();
 
 updateAuthUI();
 
