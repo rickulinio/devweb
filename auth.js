@@ -5,6 +5,21 @@ const REDIRECT_URI = "https://rickulinio.github.io/devweb/";
 
 console.log("[AUTH] script loaded");
 
+/* ================= EVENT SAFE TRIGGER ================= */
+
+function triggerAuthUpdate() {
+  window.dispatchEvent(new Event("auth:update"));
+
+  // fallback globalny (gdy main.js jeszcze nie gotowy)
+  if (typeof window.updateAuthUI === "function") {
+    try {
+      window.updateAuthUI();
+    } catch (e) {
+      console.warn("[AUTH] updateAuthUI failed:", e);
+    }
+  }
+}
+
 /* ================= STORAGE ================= */
 
 function saveUser(user) {
@@ -50,54 +65,48 @@ function getDiscordLoginURL() {
   );
 }
 
-/* ================= TOKEN ================= */
+/* ================= TOKEN PARSER (FIXED) ================= */
 
 function getAccessToken() {
   const hash = window.location.hash;
-  console.log("[AUTH] hash:", hash);
 
-  if (!hash) return null;
+  if (!hash || hash.length < 5) return null;
 
-  const params = new URLSearchParams(hash.replace("#", ""));
+  const params = new URLSearchParams(hash.substring(1));
   const token = params.get("access_token");
 
-  console.log("[AUTH] token:", token);
+  console.log("[AUTH] hash:", hash);
+  console.log("[AUTH] token exists:", !!token);
+
   return token;
 }
 
-/* ================= DISCORD FETCH (SAFE MODE) ================= */
+/* ================= DISCORD FETCH ================= */
 
 async function fetchUser(token) {
   console.log("[AUTH] fetching user...");
 
-  try {
-    const res = await fetch("https://discord.com/api/users/@me", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    const text = await res.text();
-
-    console.log("[AUTH] status:", res.status);
-    console.log("[AUTH] raw:", text);
-
-    if (!res.ok) {
-      throw new Error("Discord API blocked: " + res.status);
+  const res = await fetch("https://discord.com/api/users/@me", {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
+  });
 
-    return JSON.parse(text);
-  } catch (err) {
-    console.error("[AUTH] fetchUser failed:", err);
-    throw err;
+  const text = await res.text();
+
+  console.log("[AUTH] status:", res.status);
+  console.log("[AUTH] raw response:", text);
+
+  if (!res.ok) {
+    throw new Error("Discord API error: " + res.status);
   }
+
+  return JSON.parse(text);
 }
 
 /* ================= BUILD USER ================= */
 
 function buildUser(u) {
-  console.log("[AUTH] building user:", u);
-
   const fallback = Math.floor(Math.random() * 5);
 
   return {
@@ -114,29 +123,31 @@ function buildUser(u) {
 async function login() {
   console.log("[AUTH] login start");
 
+  // 1. jeśli user już istnieje
   const saved = getUser();
   if (saved?.id) {
-    console.log("[AUTH] user already in localStorage");
-    window.dispatchEvent(new Event("auth:update"));
+    console.log("[AUTH] user already exists");
+    triggerAuthUpdate();
     return;
   }
 
+  // 2. sprawdź token z URL
   const token = getAccessToken();
 
   if (!token) {
-    console.log("[AUTH] no token in URL");
+    console.log("[AUTH] no token found in URL");
     return;
   }
 
   try {
-    let discordUser = null;
+    let discordUser;
 
     try {
       discordUser = await fetchUser(token);
     } catch (e) {
-      console.warn("[AUTH] Discord API failed, using fallback mode");
+      console.warn("[AUTH] Discord API failed → fallback user");
+      console.warn(e);
 
-      // fallback (żeby NIE blokowało loginu)
       discordUser = {
         id: "local-" + Date.now(),
         username: "Discord User",
@@ -149,9 +160,9 @@ async function login() {
     saveUser(user);
     cleanUrl();
 
-    window.dispatchEvent(new Event("auth:update"));
-
     console.log("[AUTH] login success");
+    triggerAuthUpdate();
+
   } catch (e) {
     console.error("[AUTH] LOGIN FAILED:", e);
     clearUser();
@@ -164,9 +175,11 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("[AUTH] DOM loaded");
 
   const loginBtn = document.getElementById("loginBtn");
+
   if (loginBtn) {
     loginBtn.href = getDiscordLoginURL();
   }
 
+  // ważne: zawsze próbuj login
   login();
 });
