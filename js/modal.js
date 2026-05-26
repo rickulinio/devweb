@@ -123,14 +123,6 @@ function openModal(key) {
   if (cooldown) startCooldownUpdater(key);
 }
 
-/* ───────── STYLIZACJA UI (DODAJ DO CSS) ───────── */
-/* .modal-user-profile { display: flex; align-items: center; gap: 12px; margin: 20px 0; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
-.modal-user-profile img { width: 44px; height: 44px; border-radius: 50%; }
-.modal-user-profile .info { display: flex; flex-direction: column; }
-.modal-user-profile .info span { font-size: 0.85em; opacity: 0.6; }
-.login-required { justify-content: center; color: #ff6b6b; font-weight: 500; }
-*/
-
 function initTabs() {
   const modal = document.getElementById("modalBox");
   if (!modal) return;
@@ -179,8 +171,8 @@ async function sendApp(key) {
   btn.textContent = "Wysyłanie...";
 
   const fields = [
-      { name: "👤 Użytkownik", value: `${user.username}`, inline: true },
-      { name: "🆔 Discord ID", value: `${user.id}`, inline: true }
+      { name: "Użytkownik", value: `${user.username}`, inline: true },
+      { name: "Discord ID", value: `${user.id}`, inline: true }
   ];
 
   faction.questions.forEach(section => {
