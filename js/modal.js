@@ -4,7 +4,7 @@ const APP_COOLDOWN_HOURS = 24;
 let cooldownInterval = null;
 
 function getCooldownKey(key) { return `appCooldown_${key}`; }
-function getDraftKey(key) { return `draft_${key}`; } // Klucz do zapisywania szkiców
+function getDraftKey(key) { return `draft_${key}`; }
 
 function hasCooldown(key) {
   const saved = localStorage.getItem(getCooldownKey(key));
@@ -26,7 +26,7 @@ function getRemainingTime(key) {
 }
 
 function setCooldown(key) {
-  localStorage.removeItem(getDraftKey(key)); // Czyścimy szkic po wysłaniu
+  localStorage.removeItem(getDraftKey(key));
   const expires = Date.now() + APP_COOLDOWN_HOURS * 60 * 60 * 1000;
   localStorage.setItem(getCooldownKey(key), expires);
 }
@@ -81,9 +81,7 @@ function openModal(key) {
             <strong>${user.username}</strong>
             <span>ID: ${user.id}</span>
           </div>
-        ` : `
-          <div class="login-msg">Aby uzupełnić podanie, musisz się zalogować.</div>
-        `}
+        ` : `<div class="login-msg">Aby uzupełnić podanie, musisz się zalogować.</div>`}
       </div>
 
       <div class="modal-body">
@@ -93,15 +91,21 @@ function openModal(key) {
 
         ${sections.map((s, i) => `
           <div class="modal-section ${i === 0 ? "active" : ""}" data-section="${s.section}">
-            ${s.items.map(q => `
+            ${s.items.map(q => {
+              const val = draft[q.id] || "";
+              const limit = q.maxLength || 500;
+              return `
               <div class="fg">
                 <label class="fl">${q.label}${q.required ? " *" : ""}</label>
                 ${q.type === "textarea" 
-                  ? `<textarea class="fta" id="m-${q.id}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""}>${draft[q.id] || ""}</textarea>`
-                  : `<input type="text" class="fi" id="m-${q.id}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""} value="${draft[q.id] || ""}">`
+                  ? `<textarea class="fta" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""}>${val}</textarea>`
+                  : `<input type="text" class="fi" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(cooldown || isNotLoggedIn) ? "disabled" : ""} value="${val}">`
                 }
+                <div class="char-counter" style="font-size: 11px; opacity: 0.5; text-align: right; margin-top: 4px;">
+                  <span class="curr-len">${val.length}</span> / ${limit} znaków
+                </div>
               </div>
-            `).join("")}
+            `}).join("")}
           </div>
         `).join("")}
 
@@ -116,9 +120,14 @@ function openModal(key) {
     </div>
   `;
 
-  // --- ZAPISYWANIE SZKICU W CZASIE RZECZYWISTYM ---
+  // --- LOGIKA LICZNIKA I SZKICU ---
   modalBox.querySelectorAll('.fi, .fta').forEach(el => {
-    el.addEventListener('input', () => {
+    el.addEventListener('input', (e) => {
+      // Aktualizacja licznika
+      const parent = e.target.closest('.fg');
+      parent.querySelector('.curr-len').textContent = e.target.value.length;
+
+      // Zapisywanie szkicu
       const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
       const fieldId = el.id.replace('m-', '');
       currentDraft[fieldId] = el.value;
