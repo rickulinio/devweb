@@ -39,7 +39,7 @@ function startCooldownUpdater(key) {
     if (!btn || !alert) { clearInterval(cooldownInterval); return; }
     if (!hasCooldown(key)) {
       btn.disabled = false;
-      btn.textContent = "Wyślij Podanie";
+      btn.textContent = "Wyślij";
       alert.className = "f-alert";
       alert.textContent = "";
       clearInterval(cooldownInterval);
