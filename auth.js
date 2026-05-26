@@ -1,30 +1,35 @@
 /* ================= CONFIG ================= */
 
 const CLIENT_ID = "1480598374024483012";
-const REDIRECT_URI = "https://rickulinio.github.io/devweb";
+const REDIRECT_URI = "https://rickulinio.github.io/devweb/";
+
+console.log("[AUTH] script loaded");
 
 /* ================= STORAGE ================= */
 
 function saveUser(user) {
+  console.log("[AUTH] saving user:", user);
   localStorage.setItem("user", JSON.stringify(user));
 }
 
 function getUser() {
   try {
-    return JSON.parse(localStorage.getItem("user"));
-  } catch {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch (e) {
+    console.log("[AUTH] getUser error", e);
     return null;
   }
 }
 
 function clearUser() {
+  console.log("[AUTH] clearing user");
   localStorage.removeItem("user");
 }
 
 /* ================= URL ================= */
 
 function cleanUrl() {
-  history.replaceState({}, document.title, window.location.pathname);
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 /* ================= LOGIN URL ================= */
@@ -35,8 +40,7 @@ function getDiscordLoginURL() {
     `?client_id=${CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
     "&response_type=token" +
-    "&scope=identify" +
-    "&prompt=none"
+    "&scope=identify"
   );
 }
 
@@ -44,22 +48,33 @@ function getDiscordLoginURL() {
 
 function getAccessToken() {
   const hash = window.location.hash;
-  console.log("HASH:", hash); // 🔥 DEBUG
+  console.log("[AUTH] hash:", hash);
+
   if (!hash) return null;
 
-  return new URLSearchParams(hash.replace("#", "")).get("access_token");
+  const params = new URLSearchParams(hash.replace("#", ""));
+  const token = params.get("access_token");
+
+  console.log("[AUTH] token:", token);
+  return token;
 }
 
 /* ================= FETCH ================= */
 
 async function fetchUser(token) {
+  console.log("[AUTH] fetching Discord user...");
+
   const res = await fetch("https://discord.com/api/users/@me", {
     headers: {
       Authorization: `Bearer ${token}`
     }
   });
 
-  if (!res.ok) throw new Error("Discord API error");
+  console.log("[AUTH] response status:", res.status);
+
+  if (!res.ok) {
+    throw new Error("Discord API error " + res.status);
+  }
 
   return res.json();
 }
@@ -67,6 +82,8 @@ async function fetchUser(token) {
 /* ================= BUILD ================= */
 
 function buildUser(u) {
+  console.log("[AUTH] building user:", u);
+
   const fallback = Number(u.discriminator || 0) % 5;
 
   return {
@@ -78,24 +95,26 @@ function buildUser(u) {
   };
 }
 
-/* ================= MAIN LOGIN ================= */
+/* ================= LOGIN ================= */
 
 async function login() {
+  console.log("[AUTH] login start");
 
   const saved = getUser();
-  const token = getAccessToken();
-
-  // 1. jeśli już jest user → NIE ROBIMY NIC
   if (saved?.id) {
+    console.log("[AUTH] user already saved");
     window.dispatchEvent(new Event("auth:update"));
     return;
   }
 
-  // 2. jeśli brak tokena → stop
-  if (!token) return;
+  const token = getAccessToken();
+
+  if (!token) {
+    console.log("[AUTH] no token in URL");
+    return;
+  }
 
   try {
-
     const discordUser = await fetchUser(token);
     const user = buildUser(discordUser);
 
@@ -104,18 +123,22 @@ async function login() {
 
     window.dispatchEvent(new Event("auth:update"));
 
+    console.log("[AUTH] login success");
   } catch (e) {
-    console.error("AUTH ERROR:", e);
+    console.error("[AUTH] LOGIN ERROR:", e);
     clearUser();
   }
 }
 
-/* ================= INIT (TYLKO RAZ) ================= */
+/* ================= INIT ================= */
 
 window.addEventListener("DOMContentLoaded", () => {
+  console.log("[AUTH] DOM loaded");
 
   const loginBtn = document.getElementById("loginBtn");
-  if (loginBtn) loginBtn.href = getDiscordLoginURL();
+  if (loginBtn) {
+    loginBtn.href = getDiscordLoginURL();
+  }
 
   login();
 });
