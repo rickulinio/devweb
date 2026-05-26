@@ -1,90 +1,63 @@
 /* ================= CONFIG ================= */
 
 const CLIENT_ID = "1480598374024483012";
-const REDIRECT_URI = "https://rickulinio.github.io/devweb/";
-
-console.log("[AUTH] script loaded");
-
-/* ================= EVENT SAFE TRIGGER ================= */
-
-function triggerAuthUpdate() {
-  window.dispatchEvent(new Event("auth:update"));
-
-  // fallback globalny (gdy main.js jeszcze nie gotowy)
-  if (typeof window.updateAuthUI === "function") {
-    try {
-      window.updateAuthUI();
-    } catch (e) {
-      console.warn("[AUTH] updateAuthUI failed:", e);
-    }
-  }
-}
+const BASE_URL = "https://rickulinio.github.io/devweb/";
 
 /* ================= STORAGE ================= */
 
 function saveUser(user) {
-  try {
-    console.log("[AUTH] saving user:", user);
-    localStorage.setItem("user", JSON.stringify(user));
-  } catch (e) {
-    console.error("[AUTH] save error", e);
-  }
+  localStorage.setItem("user", JSON.stringify(user));
 }
 
-function getUser() {
+function getSavedUser() {
   try {
-    const raw = localStorage.getItem("user");
-    if (!raw || raw === "undefined" || raw === "null") return null;
-    return JSON.parse(raw);
-  } catch (e) {
-    console.log("[AUTH] getUser error", e);
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
     return null;
   }
 }
 
 function clearUser() {
-  console.log("[AUTH] clearing user");
   localStorage.removeItem("user");
 }
 
-/* ================= URL CLEAN ================= */
+/* ================= TOKEN ================= */
 
-function cleanUrl() {
-  window.history.replaceState({}, document.title, window.location.pathname);
+function getTokenFromHash() {
+  const hash = window.location.hash.substring(1);
+
+  if (!hash) return null;
+
+  const params = new URLSearchParams(hash);
+
+  return params.get("access_token");
 }
 
-/* ================= DISCORD LOGIN URL ================= */
+/* ================= CLEAN URL ================= */
 
-function getDiscordLoginURL() {
-  return (
-    "https://discord.com/oauth2/authorize" +
-    `?client_id=${CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-    "&response_type=token" +
-    "&scope=identify"
+function cleanUrl() {
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname + window.location.search
   );
 }
 
-/* ================= TOKEN PARSER (FIXED) ================= */
+/* ================= EVENT ================= */
 
-function getAccessToken() {
-  const hash = window.location.hash;
-
-  if (!hash || hash.length < 5) return null;
-
-  const params = new URLSearchParams(hash.substring(1));
-  const token = params.get("access_token");
-
-  console.log("[AUTH] hash:", hash);
-  console.log("[AUTH] token exists:", !!token);
-
-  return token;
+function triggerAuthUpdate() {
+  window.dispatchEvent(new Event("auth:update"));
 }
 
-/* ================= DISCORD FETCH ================= */
+/* ================= LOGIN URL ================= */
 
-async function fetchUser(token) {
-  console.log("[AUTH] fetching user...");
+function getDiscordLoginURL() {
+  return `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(BASE_URL)}&response_type=token&scope=identify`;
+}
+
+/* ================= FETCH USER ================= */
+
+async function fetchDiscordUser(token) {
 
   const res = await fetch("https://discord.com/api/users/@me", {
     headers: {
@@ -92,87 +65,93 @@ async function fetchUser(token) {
     }
   });
 
-  const text = await res.text();
-
-  console.log("[AUTH] status:", res.status);
-  console.log("[AUTH] raw response:", text);
-
   if (!res.ok) {
-    throw new Error("Discord API error: " + res.status);
+
+    let err = {};
+
+    try {
+      err = await res.json();
+    } catch {}
+
+    throw new Error(
+      err.message || `Discord API Error (${res.status})`
+    );
   }
 
-  return JSON.parse(text);
+  return res.json();
 }
 
-/* ================= BUILD USER ================= */
+/* ================= USER FORMAT ================= */
 
-function buildUser(u) {
-  const fallback = Math.floor(Math.random() * 5);
+function buildUserData(user) {
+
+  const defaultAvatarIndex =
+    Number(user.discriminator || 0) % 5;
 
   return {
-    id: u.id || "unknown",
-    username: u.global_name || u.username || "Discord User",
-    avatar: u.avatar
-      ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
-      : `https://cdn.discordapp.com/embed/avatars/${fallback}.png`
+    id: user.id,
+
+    username: user.global_name ||
+              user.username ||
+              "Discord User",
+
+    avatar: user.avatar
+      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=512`
+      : `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`
   };
 }
 
-/* ================= MAIN LOGIN ================= */
+/* ================= LOGIN FLOW ================= */
 
-async function login() {
-  console.log("[AUTH] login start");
+async function handleLogin() {
 
-  // 1. jeśli user już istnieje
-  const saved = getUser();
-  if (saved?.id) {
-    console.log("[AUTH] user already exists");
-    triggerAuthUpdate();
-    return;
-  }
+  const token = getTokenFromHash();
 
-  // 2. sprawdź token z URL
-  const token = getAccessToken();
-
+  /* jeśli nie ma tokena */
   if (!token) {
-    console.log("[AUTH] no token found in URL");
+
+    const savedUser = getSavedUser();
+
+    if (savedUser?.id) {
+      triggerAuthUpdate();
+    }
+
     return;
   }
 
   try {
-    let discordUser;
 
-    try {
-      discordUser = await fetchUser(token);
-    } catch (e) {
-      console.warn("[AUTH] Discord API failed → fallback user");
-      console.warn(e);
+    console.log("Discord login start...");
 
-      discordUser = {
-        id: "local-" + Date.now(),
-        username: "Discord User",
-        avatar: null
-      };
+    const discordUser = await fetchDiscordUser(token);
+
+    if (!discordUser?.id) {
+      throw new Error("Invalid Discord user");
     }
 
-    const user = buildUser(discordUser);
+    const userData = buildUserData(discordUser);
 
-    saveUser(user);
+    saveUser(userData);
+
+    console.log("Saved user:", userData);
+
+  } catch (err) {
+
+    console.error("AUTH ERROR:", err);
+
+    clearUser();
+
+  } finally {
+
     cleanUrl();
 
-    console.log("[AUTH] login success");
     triggerAuthUpdate();
-
-  } catch (e) {
-    console.error("[AUTH] LOGIN FAILED:", e);
-    clearUser();
   }
 }
 
 /* ================= INIT ================= */
 
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("[AUTH] DOM loaded");
 
   const loginBtn = document.getElementById("loginBtn");
 
@@ -180,6 +159,5 @@ window.addEventListener("DOMContentLoaded", () => {
     loginBtn.href = getDiscordLoginURL();
   }
 
-  // ważne: zawsze próbuj login
-  login();
+  handleLogin();
 });
