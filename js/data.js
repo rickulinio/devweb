@@ -6,7 +6,7 @@ const CONFIG = {
     },
     // Lista frakcji
     factions: [
-        { key: "lspd", name: "LSPD", icon: "👮", desc: "Departament Policji", status: true, color: "#3498db" },
+        { key: "adm", name: "ADMINISTRACJA", icon: "🚨", desc: "", status: true, color: "#3498db" },
         { key: "ems", name: "EMS", icon: "🚑", desc: "Pogotowie", status: true, color: "#e74c3c" }
     ]
 };
