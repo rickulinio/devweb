@@ -1,3 +1,16 @@
+const CONFIG = {
+    // ID użytkowników i ich uprawnienia
+    admins: {
+        "123456789": { name: "Administrator", role: "admin" }, // admin ma dostęp do wszystkiego
+        "987654321": { name: "LSPD Lider", role: "lspd" }      // lspd lider zarządza tylko lspd
+    },
+    // Lista frakcji
+    factions: [
+        { key: "lspd", name: "LSPD", icon: "👮", desc: "Departament Policji", status: true, color: "#3498db" },
+        { key: "ems", name: "EMS", icon: "🚑", desc: "Pogotowie", status: true, color: "#e74c3c" }
+    ]
+};
+
 const FACTIONS = [
   {
     key: 'adm', 

@@ -340,3 +340,16 @@ if (canvas && ctx) {
 
   animate();
 }
+
+function updateUI() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const panelBtn = document.getElementById("panelBtn");
+    const loginBtn = document.getElementById("loginBtn");
+
+    if (user && CONFIG.admins[user.id]) {
+        // Jeśli jest adminem lub ma rolę, pokazujemy panel
+        panelBtn.style.display = "inline-block";
+        loginBtn.style.display = "none";
+    }
+}
+window.addEventListener("load", updateUI);

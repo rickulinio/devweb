@@ -28,37 +28,38 @@
 
 <!-- NAV -->
 <nav class="nav" id="nav">
-
+  <!-- Logo -->
   <a href="#" class="nav-logo">
     <img src="img/logo.png" alt="Vast Roleplay Logo" class="nav-logo-img">
   </a>
 
+  <!-- Mobile Toggle -->
   <button class="nav-toggle" id="navToggle" aria-label="Menu">
     ☰
   </button>
 
+  <!-- Links -->
   <ul class="nav-links">
     <li><a href="#team">Zespół</a></li>
     <li><a href="#keybinds">Klawiszologia</a></li>
     <li><a href="#rules">Regulamin</a></li>
   </ul>
 
+  <!-- Actions -->
   <div class="nav-action">
+    <a href="#applications" class="nav-btn nav-btn-ghost">Złóż Podanie</a>
 
-    <a href="#applications" class="nav-btn nav-btn-ghost">
-      Złóż Podanie
+    <!-- Panel Admina - Ukryty domyślnie przez CSS (display: none) -->
+    <a href="panel.html" class="nav-btn nav-btn-fill" id="adminPanelBtn" style="display: none; background: #7700ff;">
+      Panel Zarządzania
     </a>
 
-    <!-- LOGIN -->
-    <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">
-      Zaloguj
-    </a>
+    <!-- Login -->
+    <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">Zaloguj</a>
 
-    <!-- PROFILE (UKRYTE DOMYŚLNIE) -->
+    <!-- User Profile Dropdown -->
     <div id="user" class="nav-user nav-dropdown"></div>
-
   </div>
-
 </nav>
 
 <!-- 🔥 MOBILE OVERLAY (TU MA BYĆ) -->
