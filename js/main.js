@@ -29,9 +29,6 @@ window.addEventListener("load", () => {
   }, 1500);
 });
 
-/* ================= HELPER ================= */
-const $ = (id) => document.getElementById(id);
-
 /* ================= FACTIONS ================= */
 const fg = $("factions-grid");
 
@@ -341,54 +338,42 @@ if (canvas && ctx) {
   animate();
 }
 
-/* ================= GŁÓWNA LOGIKA ================= */
-
-// Zabezpieczenie przed błędami braku elementów
+/* ================= HELPER ================= */
 const $ = (id) => document.getElementById(id);
 
-// Funkcja zarządzająca UI po zalogowaniu
-function updateUI() {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const adminBtn = $("adminPanelBtn"); // Zmieniono na ID z Twojego navbara
-    const loginBtn = $("loginBtn");
-
-    if (user && CONFIG && CONFIG.admins && CONFIG.admins[user.id]) {
-        if (adminBtn) adminBtn.style.display = "inline-flex";
-        if (loginBtn) loginBtn.style.display = "none";
-    } else {
-        if (adminBtn) adminBtn.style.display = "none";
-    }
-}
-
-// Uruchomienie przy załadowaniu strony
+/* ================= INICJALIZACJA ================= */
 window.addEventListener("DOMContentLoaded", () => {
-    updateUI();
-    
-    // Reszta Twoich funkcji:
     initLoader();
     initFactions();
     initTeam();
     initNav();
     initReveal();
+    initRules();
+    initKeybinds();
     initMobileMenu();
+    initCursorAndMagnetic();
+    initParticles();
     updateAuthUI();
+    updateAdminUI(); // Sprawdzenie dostępu do panelu
 });
 
-/* ================= FUNKCJE INICJALIZUJĄCE ================= */
+/* ================= ZARZĄDZANIE UI ================= */
+function updateAdminUI() {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const adminBtn = $("adminPanelBtn");
+    const loginBtn = $("loginBtn");
 
+    if (user && typeof CONFIG !== 'undefined' && CONFIG.admins[user.id]) {
+        if (adminBtn) adminBtn.style.display = "inline-flex";
+        if (loginBtn) loginBtn.style.display = "none";
+    }
+}
+
+/* ================= SEKCJE ================= */
 function initLoader() {
     const loader = $("loader");
     if (!loader) return;
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.floor(Math.random() * 8) + 2;
-        if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => loader.style.opacity = "0", 400);
-        }
-    }, 70);
+    setTimeout(() => loader.classList.add("hide"), 1500);
 }
 
 function initFactions() {
@@ -397,16 +382,10 @@ function initFactions() {
         FACTIONS.forEach(f => {
             const el = document.createElement("div");
             el.className = "faction-card reveal";
-            el.style.setProperty("--fc", f.color);
-            // Dodajemy sprawdzanie statusu: jeśli false, dodajemy klasę 'disabled'
             el.innerHTML = `
-                <div class="fc-top">
-                    <div class="fc-icon">${f.icon}</div>
-                    <div class="fc-name">${f.name}</div>
-                </div>
+                <div class="fc-top"><div class="fc-icon">${f.icon}</div><div class="fc-name">${f.name}</div></div>
                 <p class="fc-desc">${f.desc}</p>
                 <button class="fc-cta ${!f.status ? 'btn-disabled' : ''}" 
-                    style="background:${f.color}18;border-color:${f.color}30;"
                     onclick="${f.status ? `openModal('${f.key}')` : 'alert(\'Rekrutacja zamknięta\')'}">
                     ${f.status ? 'Złóż Podanie →' : 'Zamknięte'}
                 </button>
@@ -421,15 +400,4 @@ function initNav() {
         const nav = $("nav");
         if (nav) nav.classList.toggle("scrolled", scrollY > 20);
     });
-}
-
-function updateAuthUI() {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const loginBtn = $("loginBtn");
-    const userBox = $("user");
-
-    if (!user || !loginBtn || !userBox) return;
-
-    loginBtn.style.display = "none";
-    userBox.innerHTML = `<img src="${user.avatar}" class="user-avatar" style="width:40px; border-radius:50%;">`;
 }
