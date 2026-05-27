@@ -40,7 +40,50 @@ const FACTIONS = [
         ]
       }
     ]
-  }
+  },
+
+  {
+    key: 'adm321312', 
+    name: 'ADMINISTRACJA',
+    icon: '🚨',
+    color: '#ff0000',
+    desc: "Dołącz do grona administracji Vast Roleplay.",
+    webhook: 'https://discord.com/api/webhooks/1506379285898985635/5g2imypeguUg_2eXyDrdyCLJuRAYDghkY9Ak5NCr7GSHm85mhcWXyf2Y82ywUvbbuJbi',
+    roleId: '',
+    questions: [
+      {
+        section: 'OOC',
+        items: [
+          {
+            id: 'adm3121231',
+            label: 'Dlaczego chcesz dołączyć?',
+            type: 'textarea',
+            required: true,
+            maxLength: 800 // Limit 800 znaków
+          },
+          {
+            id: 'adm4343432',
+            label: 'Ile masz lat?',
+            type: 'input',
+            required: true,
+            maxLength: 3
+          }
+        ]
+      },
+      {
+        section: 'Doświadczenie',
+        items: [
+          {
+            id: 'adm4334343',
+            label: 'Gdzie byłeś w administracji?',
+            type: 'textarea',
+            required: true,
+            maxLength: 1200
+          }
+        ]
+      }
+    ]
+  },
 ];
 
 const TEAM = [
