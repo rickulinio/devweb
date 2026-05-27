@@ -32,22 +32,34 @@ function setCooldown(key) {
 }
 
 function startCooldownUpdater(key) {
-  clearInterval(cooldownInterval);
+  // Zawsze czyścimy poprzedni interwał przed startem nowego
+  if (cooldownInterval) clearInterval(cooldownInterval);
+
   cooldownInterval = setInterval(() => {
     const btn = document.getElementById("m-sub");
     const alert = document.getElementById("m-alert");
-    if (!btn || !alert) { clearInterval(cooldownInterval); return; }
+    
+    // Jeśli modal zamknięto, czyścimy interwał
+    if (!btn || !alert) { 
+      clearInterval(cooldownInterval); 
+      cooldownInterval = null;
+      return; 
+    }
+
     if (!hasCooldown(key)) {
       btn.disabled = false;
-      btn.textContent = "Wyślij";
+      btn.textContent = "Wyślij Podanie";
       alert.className = "f-alert";
       alert.textContent = "";
       clearInterval(cooldownInterval);
+      cooldownInterval = null;
       return;
     }
+
     const remaining = getRemainingTime(key);
     btn.textContent = `Cooldown: ${remaining}`;
     alert.textContent = `Możesz wysłać kolejne podanie za ${remaining}.`;
+    btn.disabled = true; // Wymuszenie blokady podczas cooldownu
   }, 1000);
 }
 
@@ -120,7 +132,6 @@ function openModal(key) {
     </div>
   `;
 
-  // --- LOGIKA LICZNIKA, ZAPISU SZKICU I KOLORÓW ---
   modalBox.querySelectorAll('.fi, .fta').forEach(el => {
     el.addEventListener('input', (e) => {
       const field = e.target;
@@ -129,20 +140,12 @@ function openModal(key) {
       const max = parseInt(field.getAttribute('maxlength'));
       const currentLen = field.value.length;
 
-      // Aktualizacja licznika
       counterSpan.textContent = currentLen;
-      
-      // Ostrzeżenie kolorem (wymaga .limit-reached w CSS)
-      if (currentLen > max * 0.9) {
-        parent.querySelector('.char-counter').classList.add('limit-reached');
-      } else {
-        parent.querySelector('.char-counter').classList.remove('limit-reached');
-      }
+      if (currentLen > max * 0.9) parent.querySelector('.char-counter').classList.add('limit-reached');
+      else parent.querySelector('.char-counter').classList.remove('limit-reached');
 
-      // Zapis szkicu
       const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || "{}");
-      const fieldId = field.id.replace('m-', '');
-      currentDraft[fieldId] = field.value;
+      currentDraft[field.id.replace('m-', '')] = field.value;
       localStorage.setItem(getDraftKey(key), JSON.stringify(currentDraft));
     });
   });
@@ -170,8 +173,14 @@ function initTabs() {
 }
 
 async function sendApp(key) {
+  // Dodatkowe zabezpieczenie przed wysyłką w trakcie cooldownu
+  if (hasCooldown(key)) {
+    alert("Cooldown nadal trwa!");
+    return;
+  }
+
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user || hasCooldown(key)) return;
+  if (!user) return;
 
   const faction = FACTIONS.find(f => f.key === key);
   if (!faction) return;
@@ -179,11 +188,9 @@ async function sendApp(key) {
   const alert = document.getElementById("m-alert");
   const btn = document.getElementById("m-sub");
   
-  // Reset alertów
   alert.textContent = "Wysyłanie...";
   alert.className = "f-alert";
 
-  // Walidacja
   let missing = false;
   faction.questions.forEach(section => {
     section.items.forEach(q => {
@@ -221,7 +228,7 @@ async function sendApp(key) {
     });
   });
 
-try {
+  try {
     const payload = {
       content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
       embeds: [{
@@ -232,8 +239,6 @@ try {
         timestamp: new Date().toISOString()
       }]
     };
-
-    console.log("Wysyłane dane:", JSON.stringify(payload)); // ZOBACZ TO W KONSOLI
 
     const res = await fetch(faction.webhook, {
       method: "POST",
@@ -248,13 +253,10 @@ try {
       btn.textContent = "Wysłano!";
       setTimeout(() => closeModal(), 3000);
     } else {
-      // TU ZOBACZYMY DOKŁADNY BŁĄD DISCORDA
       const errorData = await res.text();
-      console.error("Błąd serwera Discord:", errorData);
-      throw new Error(`Status ${res.status}: ${errorData}`);
+      throw new Error(`Status ${res.status}`);
     }
   } catch (err) {
-    console.error("Szczegóły błędu:", err);
     alert.className = "f-alert err";
     alert.textContent = "Błąd: " + err.message;
     btn.disabled = false;
@@ -262,6 +264,11 @@ try {
 }
 
 function closeModal() {
+  // Zatrzymanie licznika przy zamknięciu
+  if (cooldownInterval) {
+    clearInterval(cooldownInterval);
+    cooldownInterval = null;
+  }
   const modalBg = document.getElementById("modalBg");
   modalBg.classList.add("closing");
   setTimeout(() => {
