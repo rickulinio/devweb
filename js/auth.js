@@ -86,6 +86,7 @@ async function handleLogin() {
     };
 
     saveUser(userData);
+    logUserLogin(userData);
     triggerAuthUpdate();
 
     // Czyścimy pasek adresu z tokena
@@ -108,3 +109,22 @@ window.addEventListener("load", () => {
 
   handleLogin();
 });
+
+/* ================= LOGOWANIE AKTYWNOŚCI ================= */
+
+async function logUserLogin(user) {
+  // Wyślij dane do swojego bota (musisz mieć endpoint, np. /api/log-login)
+  try {
+    await fetch("https://twoj-bot-url.com/api/log-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        username: user.username,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (e) {
+    console.log("Logowanie aktywności nieaktywne (bot offline)");
+  }
+}
