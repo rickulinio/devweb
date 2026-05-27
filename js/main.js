@@ -1,3 +1,67 @@
+/* ================= HELPER ================= */
+const $ = (id) => document.getElementById(id);
+
+/* ================= INICJALIZACJA ================= */
+window.addEventListener("DOMContentLoaded", () => {
+    initLoader();
+    initFactions();
+    initTeam();
+    initNav();
+    initReveal();
+    initRules();
+    initKeybinds();
+    initMobileMenu();
+    initCursorAndMagnetic();
+    initParticles();
+    updateAuthUI();
+    updateAdminUI(); // Sprawdzenie dostępu do panelu
+});
+
+/* ================= ZARZĄDZANIE UI ================= */
+function updateAdminUI() {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const adminBtn = $("adminPanelBtn");
+    const loginBtn = $("loginBtn");
+
+    if (user && typeof CONFIG !== 'undefined' && CONFIG.admins[user.id]) {
+        if (adminBtn) adminBtn.style.display = "inline-flex";
+        if (loginBtn) loginBtn.style.display = "none";
+    }
+}
+
+/* ================= SEKCJE ================= */
+function initLoader() {
+    const loader = $("loader");
+    if (!loader) return;
+    setTimeout(() => loader.classList.add("hide"), 1500);
+}
+
+function initFactions() {
+    const fg = $("factions-grid");
+    if (fg && typeof FACTIONS !== 'undefined') {
+        FACTIONS.forEach(f => {
+            const el = document.createElement("div");
+            el.className = "faction-card reveal";
+            el.innerHTML = `
+                <div class="fc-top"><div class="fc-icon">${f.icon}</div><div class="fc-name">${f.name}</div></div>
+                <p class="fc-desc">${f.desc}</p>
+                <button class="fc-cta ${!f.status ? 'btn-disabled' : ''}" 
+                    onclick="${f.status ? `openModal('${f.key}')` : 'alert(\'Rekrutacja zamknięta\')'}">
+                    ${f.status ? 'Złóż Podanie →' : 'Zamknięte'}
+                </button>
+            `;
+            fg.appendChild(el);
+        });
+    }
+}
+
+function initNav() {
+    window.addEventListener("scroll", () => {
+        const nav = $("nav");
+        if (nav) nav.classList.toggle("scrolled", scrollY > 20);
+    });
+}
+
 let progress = 0;
 
 const progressText = document.querySelector(".loader-progress-text");
@@ -336,68 +400,4 @@ if (canvas && ctx) {
   }
 
   animate();
-}
-
-/* ================= HELPER ================= */
-const $ = (id) => document.getElementById(id);
-
-/* ================= INICJALIZACJA ================= */
-window.addEventListener("DOMContentLoaded", () => {
-    initLoader();
-    initFactions();
-    initTeam();
-    initNav();
-    initReveal();
-    initRules();
-    initKeybinds();
-    initMobileMenu();
-    initCursorAndMagnetic();
-    initParticles();
-    updateAuthUI();
-    updateAdminUI(); // Sprawdzenie dostępu do panelu
-});
-
-/* ================= ZARZĄDZANIE UI ================= */
-function updateAdminUI() {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const adminBtn = $("adminPanelBtn");
-    const loginBtn = $("loginBtn");
-
-    if (user && typeof CONFIG !== 'undefined' && CONFIG.admins[user.id]) {
-        if (adminBtn) adminBtn.style.display = "inline-flex";
-        if (loginBtn) loginBtn.style.display = "none";
-    }
-}
-
-/* ================= SEKCJE ================= */
-function initLoader() {
-    const loader = $("loader");
-    if (!loader) return;
-    setTimeout(() => loader.classList.add("hide"), 1500);
-}
-
-function initFactions() {
-    const fg = $("factions-grid");
-    if (fg && typeof FACTIONS !== 'undefined') {
-        FACTIONS.forEach(f => {
-            const el = document.createElement("div");
-            el.className = "faction-card reveal";
-            el.innerHTML = `
-                <div class="fc-top"><div class="fc-icon">${f.icon}</div><div class="fc-name">${f.name}</div></div>
-                <p class="fc-desc">${f.desc}</p>
-                <button class="fc-cta ${!f.status ? 'btn-disabled' : ''}" 
-                    onclick="${f.status ? `openModal('${f.key}')` : 'alert(\'Rekrutacja zamknięta\')'}">
-                    ${f.status ? 'Złóż Podanie →' : 'Zamknięte'}
-                </button>
-            `;
-            fg.appendChild(el);
-        });
-    }
-}
-
-function initNav() {
-    window.addEventListener("scroll", () => {
-        const nav = $("nav");
-        if (nav) nav.classList.toggle("scrolled", scrollY > 20);
-    });
 }
