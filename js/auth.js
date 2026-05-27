@@ -110,21 +110,30 @@ window.addEventListener("load", () => {
   handleLogin();
 });
 
-/* ================= LOGOWANIE AKTYWNOŚCI ================= */
+/* ================= LOGOWANIE AKTYWNOŚCI PRZEZ WEBHOOK ================= */
 
 async function logUserLogin(user) {
-  // Wyślij dane do swojego bota (musisz mieć endpoint, np. /api/log-login)
+  // UWAGA: Wklej tutaj swój link do Webhooka z Discorda
+  const WEBHOOK_URL = "https://discord.com/api/webhooks/1506379285898985635/5g2imypeguUg_2eXyDrdyCLJuRAYDghkY9Ak5NCr7GSHm85mhcWXyf2Y82ywUvbbuJbi"; 
+
   try {
-    await fetch("https://twoj-bot-url.com/api/log-login", {
+    await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: user.id,
-        username: user.username,
-        timestamp: new Date().toISOString()
+        embeds: [{
+          title: "👤 Nowe logowanie na stronie",
+          color: 0x5865F2, // Kolor Discorda
+          fields: [
+            { name: "👤 Użytkownik", value: user.username, inline: true },
+            { name: "🆔 ID", value: user.id, inline: true },
+            { name: "🕒 Data", value: new Date().toLocaleString("pl-PL") }
+          ],
+          thumbnail: { url: user.avatar }
+        }]
       })
     });
   } catch (e) {
-    console.log("Logowanie aktywności nieaktywne (bot offline)");
+    console.error("Błąd wysyłania logu:", e);
   }
 }
