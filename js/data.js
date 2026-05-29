@@ -7,8 +7,8 @@ const FACTIONS = [
     color: '#ff0000',
     desc: "Dołącz do grona administracji Vast Roleplay.",
 
-    webhook: 'https://discord.com/api/webhooks/1508582508504027259/po5hxUh6WT83gMb6HOb8avONROkbjvNbVyVwcGUZ9XoTnN3hHfYFgIQLwrUQoE330_9z',
-    roleId: '1507803370704863454',
+    webhook: 'https://discord.com/api/webhooks/1506379285898985635/5g2imypeguUg_2eXyDrdyCLJuRAYDghkY9Ak5NCr7GSHm85mhcWXyf2Y82ywUvbbuJbi',
+    roleId: '',
 
     questions: [
       {
@@ -18,49 +18,6 @@ const FACTIONS = [
             id: 'adm2',
             label: 'Link do profilu steam',
             type: 'input',
-            required: true
-          },
-          {
-            id: 'adm3',
-            label: 'Wiek',
-            type: 'input',
-            required: true,
-            maxLength: 2
-          },
-          {
-            id: 'adm4',
-            label: 'Czy posiadasz mutacje',
-            type: 'input',
-            required: true
-          },
-          {
-            id: 'adm5',
-            label: 'Co planujesz odgrywać na naszym serwerze',
-            type: 'textarea',
-            required: true
-          },
-          {
-            id: 'adm6',
-            label: 'Ile czasu w ciągu dnia jesteś w stanie poświęcić na sprawy administracyjne:',
-            type: 'input',
-            required: true
-          },
-          {
-            id: 'adm7',
-            label: 'Poprzednie doświadczenie w administracji:',
-            type: 'textarea',
-            required: true
-          },
-          {
-            id: 'adm8',
-            label: 'Jak zareagujesz, gdy podczas rządowego osoby będą się przekrzykiwać i nie dopuszcza cię do słowa:',
-            type: 'textarea',
-            required: true
-          },
-          {
-            id: 'adm9',
-            label: 'Jak powinien wyglądać poprawny "rządowy"',
-            type: 'textarea',
             required: true
           },
         ]
