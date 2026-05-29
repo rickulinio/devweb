@@ -28,38 +28,37 @@
 
 <!-- NAV -->
 <nav class="nav" id="nav">
-  <!-- Logo -->
+
   <a href="#" class="nav-logo">
     <img src="img/logo.png" alt="Vast Roleplay Logo" class="nav-logo-img">
   </a>
 
-  <!-- Mobile Toggle -->
   <button class="nav-toggle" id="navToggle" aria-label="Menu">
     ☰
   </button>
 
-  <!-- Links -->
   <ul class="nav-links">
     <li><a href="#team">Zespół</a></li>
     <li><a href="#keybinds">Klawiszologia</a></li>
     <li><a href="#rules">Regulamin</a></li>
   </ul>
 
-  <!-- Actions -->
   <div class="nav-action">
-    <a href="#applications" class="nav-btn nav-btn-ghost">Złóż Podanie</a>
 
-    <!-- Panel Admina - Ukryty domyślnie przez CSS (display: none) -->
-    <a href="panel.html" class="nav-btn nav-btn-fill" id="adminPanelBtn" style="display: none; background: #7700ff;">
-      Panel Zarządzania
+    <a href="#applications" class="nav-btn nav-btn-ghost">
+      Złóż Podanie
     </a>
 
-    <!-- Login -->
-    <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">Zaloguj</a>
+    <!-- LOGIN -->
+    <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">
+      Zaloguj
+    </a>
 
-    <!-- User Profile Dropdown -->
+    <!-- PROFILE (UKRYTE DOMYŚLNIE) -->
     <div id="user" class="nav-user nav-dropdown"></div>
+
   </div>
+
 </nav>
 
 <!-- 🔥 MOBILE OVERLAY (TU MA BYĆ) -->
@@ -443,7 +442,7 @@
         </h2>
 
         <p class="cta-desc">
-          Tysiąc graczy czeka. Dołącz do Discorda,
+          Dołącz do Discorda,
           zapoznaj się z regulaminem i zacznij swoją historię już dziś.
         </p>
 
@@ -461,6 +460,21 @@
 
     </div>
   </section>
+
+<section class="section" id="live-stats">
+  <div class="container">
+    <div class="reveal">
+      <h2 class="sec-heading" style="text-align: center;">
+        Graczy na serwerze: <span id="player-count">0</span>
+      </h2>
+    </div>
+    
+    <!-- Ograniczamy wysokość listy, żeby nie rozwaliła layoutu -->
+    <div id="player-list" class="player-grid" style="max-height: 400px; overflow-y: auto; padding: 10px;">
+      <!-- Gracze będą ładowani tutaj -->
+    </div>
+  </div>
+</section>
 
   <!-- FOOTER -->
   <footer>
