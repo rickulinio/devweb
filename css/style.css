@@ -2430,3 +2430,80 @@ body {
   color: var(--primary-color); 
   text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
 }
+
+/* ══════════════════════════════════════
+   CONFIG - SYSTEM DESIGN
+══════════════════════════════════════ */
+:root {
+  --accent:    #8620d6;
+  --bg:        #09090b;
+  --surface:   rgba(24, 24, 31, 0.7);
+  --text-main: #f4f4f5;
+  --text-muted:#a1a1aa;
+  --border:    rgba(255, 255, 255, 0.08);
+  --radius:    16px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ══════════════════════════════════════
+   GLOBAL BASE
+══════════════════════════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════
+   UI COMPONENTS (GLASS EFFECT)
+══════════════════════════════════════ */
+.cta-card, .rules-box, .player-item {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  transition: var(--transition);
+}
+
+.cta-card:hover, .rules-box:hover {
+  border-color: var(--accent);
+  transform: translateY(-5px);
+}
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn-lg {
+  padding: 1rem 2rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-block;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 20px rgba(134, 32, 214, 0.4);
+}
+
+/* ══════════════════════════════════════
+   TYPOGRAPHY
+══════════════════════════════════════ */
+h2 { font-size: 2.5rem; margin-bottom: 1.5rem; }
+h2 span { color: var(--accent); }
+p { color: var(--text-muted); margin-bottom: 1rem; }
+
+/* ══════════════════════════════════════
+   GRID & LAYOUT
+══════════════════════════════════════ */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.section { padding: 4rem 0; }
