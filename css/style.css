@@ -80,9 +80,9 @@ body::after {
   transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
 }
 .nav.scrolled {
-  background: rgba(9,9,11,0.85);
+  background: rgba(9, 9, 11, 0);
   border-color: var(--border);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(6px);
 }
 .nav-logo {
   font-family: var(--font-display);
@@ -104,7 +104,7 @@ body::after {
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
 }
-.nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-links a:hover { color: var(--text); background: rgba(255, 255, 255, 0); }
 .nav-action {
   margin-left: 1rem;
   display: flex; gap: 0.5rem;
@@ -120,7 +120,7 @@ body::after {
   color: var(--muted);
   border: 1px solid var(--border);
 }
-.nav-btn-ghost:hover { color: var(--text); border-color: var(--border-h); background: rgba(255,255,255,0.04); }
+.nav-btn-ghost:hover { color: var(--text); border-color: var(--border-h); background: rgba(255, 255, 255, 0); }
 .nav-btn-fill {
   background: var(--accent);
   color: #fff;
@@ -219,19 +219,13 @@ body::after {
   position: absolute;
   width: 700px; height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(91,127,255,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(91, 127, 255, 0) 0%, transparent 70%);
   top: -150px; left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
 }
 .hero::after {
-  content: '';
-  position: absolute;
-  width: 400px; height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%);
-  bottom: 0; right: 10%;
-  pointer-events: none;
+  display: none !important;
 }
 
 .hero-inner { position: relative; z-index: 1; max-width: 780px; }
@@ -2487,4 +2481,26 @@ h2 span {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 800;
+}
+
+/* Nowy kontener globalny */
+.global-bg {
+  position: fixed; /* Kluczowe: tło nie przewija się z treścią */
+  inset: 0;
+  z-index: -1; /* Zawsze pod spodem */
+  overflow: hidden;
+  background-color: #0b090b; /* Główny kolor tła strony */
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+}
+
+.orb {
+  position: absolute;
+}
+
+.hero, section {
+  background: transparent !important;
 }

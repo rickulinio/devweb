@@ -18,107 +18,70 @@
 </head>
 <body>
 
-<div id="loader">
-  <div class="loader-inner">
-    <img src="img/logo.png" class="loader-logo" />
-    <div class="loader-bar"></div>
-    <p>Ładowanie strony...</p>
-  </div>
-</div>
+<body>
 
-<!-- NAV -->
-<nav class="nav" id="nav">
-
-  <a href="#" class="nav-logo">
-    <img src="img/logo.png" alt="Vast Roleplay Logo" class="nav-logo-img">
-  </a>
-
-  <button class="nav-toggle" id="navToggle" aria-label="Menu">
-    ☰
-  </button>
-
-  <ul class="nav-links">
-    <li><a href="#team">Zespół</a></li>
-    <li><a href="#keybinds">Klawiszologia</a></li>
-    <li><a href="#rules">Regulamin</a></li>
-  </ul>
-
-  <div class="nav-action">
-
-    <a href="#applications" class="nav-btn nav-btn-ghost">
-      Złóż Podanie
-    </a>
-
-    <!-- LOGIN -->
-    <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">
-      Zaloguj
-    </a>
-
-    <!-- PROFILE (UKRYTE DOMYŚLNIE) -->
-    <div id="user" class="nav-user nav-dropdown"></div>
-
-  </div>
-
-</nav>
-
-<!-- 🔥 MOBILE OVERLAY (TU MA BYĆ) -->
-<div class="mobile-overlay" id="mobileOverlay"></div>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#team">Zespół</a>
-  <a href="#keybinds">Klawiszologia</a>
-  <a href="#rules">Regulamin</a>
-
-  <div class="mobile-buttons">
-    <a href="#applications" class="btn-mobile ghost">Złóż Podanie</a>
-  </div>
-</div>
-
-<!-- HERO -->
-<section class="hero">
-
-  <!-- 🔥 HERO BACKGROUND -->
-  <div class="hero-bg">
+  <div class="global-bg">
     <div class="grid"></div>
-
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
-
     <canvas id="particles"></canvas>
   </div>
 
-  <div class="hero-inner">
-
-    <div class="hero-pill">
-      <div class="hero-pill-dot"></div>
-      FiveM · Polska · Serwer Roleplay
+  <div id="loader">
+    <div class="loader-inner">
+      <img src="img/logo.png" class="loader-logo" />
+      <div class="loader-bar"></div>
+      <p>Ładowanie strony...</p>
     </div>
-
-    <h1 class="hero-title">
-      Witaj na<br>
-      <span class="hl">Vast Roleplay</span>
-    </h1>
-
-    <p class="hero-sub">
-      Immersyjny serwer roleplay na FiveM.
-      Wybierz frakcję, złóż podanie i napisz swoją historię w Los Santos.
-    </p>
-
-    <div class="hero-btns">
-      <a href="#applications" class="btn-lg btn-primary">
-        Złóż Podanie
-      </a>
-
-      <a href="https://discord.gg/gz3HhfZkNQ"
-         target="_blank"
-         class="btn-lg btn-secondary">
-        Dołącz na Discord
-      </a>
-    </div>
-
   </div>
-</section>
+
+  <nav class="nav" id="nav">
+    <a href="#" class="nav-logo">
+      <img src="img/logo.png" alt="Vast Roleplay Logo" class="nav-logo-img">
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="#team">Zespół</a></li>
+      <li><a href="#keybinds">Klawiszologia</a></li>
+      <li><a href="#rules">Regulamin</a></li>
+    </ul>
+    <div class="nav-action">
+      <a href="#applications" class="nav-btn nav-btn-ghost">Złóż Podanie</a>
+      <a href="login.html" class="nav-btn nav-btn-fill" id="loginBtn">Zaloguj</a>
+      <div id="user" class="nav-user nav-dropdown"></div>
+    </div>
+  </nav>
+
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#team">Zespół</a>
+    <a href="#keybinds">Klawiszologia</a>
+    <a href="#rules">Regulamin</a>
+    <div class="mobile-buttons">
+      <a href="#applications" class="btn-mobile ghost">Złóż Podanie</a>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-pill">
+        <div class="hero-pill-dot"></div>
+        FiveM · Polska · Serwer Roleplay
+      </div>
+      <h1 class="hero-title">
+        Witaj na<br>
+        <span class="hl">Vast Roleplay</span>
+      </h1>
+      <p class="hero-sub">
+        Immersyjny serwer roleplay na FiveM.
+        Wybierz frakcję, złóż podanie i napisz swoją historię w Los Santos.
+      </p>
+      <div class="hero-btns">
+        <a href="#applications" class="btn-lg btn-primary">Złóż Podanie</a>
+        <a href="https://discord.gg/gz3HhfZkNQ" target="_blank" class="btn-lg btn-secondary">Dołącz na Discord</a>
+      </div>
+    </div>
+  </section>
 
   <!-- FACTIONS -->
   <section class="section" id="applications">
