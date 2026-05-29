@@ -165,46 +165,6 @@ body::after {
   }
 }
 
-/* GLOW ORBS */
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  /* Zmniejszamy blur, jeśli czarne obwódki nie znikają, 
-     lub używamy 'will-change' dla lepszego renderingu */
-  filter: blur(80px); 
-  opacity: 0.8; 
-  pointer-events: none;
-  animation: floatOrb 12s ease-in-out infinite;
-  /* Jeśli nadal będą "czarne", usuń poniższą linię, 
-     bo blend-mode potrafi przyciemniać krawędzie w specyficznych warunkach */
-  mix-blend-mode: screen; 
-}
-
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  /* Zmieniamy 70% na 95% - gradient kończy się niemal na krawędzi diva */
-  background: radial-gradient(circle, #7700ff 0%, rgba(119, 0, 255, 0) 95%);
-  top: 5%;
-  left: 5%;
-}
-
-.orb-2 {
-  width: 450px;
-  height: 450px;
-  /* To samo tutaj - 95% daje bardzo miękkie zakończenie */
-  background: radial-gradient(circle, #4e46e5 0%, rgba(78, 70, 229, 0) 95%);
-  bottom: 5%;
-  right: 5%;
-  animation-delay: -3s;
-}
-
-@keyframes floatOrb {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(30px, -50px) scale(1.1); }
-}
-
-
 /* PARTICLES */
 #particles {
   position: absolute;
