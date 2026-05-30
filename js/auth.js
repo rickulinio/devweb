@@ -1,5 +1,5 @@
 const CLIENT_ID = "1480598374024483012";
-const REDIRECT_URI = "https://rickulinio.github.io/vast/";
+const REDIRECT_URI = "https://devweb-7tg7.onrender.com/";
 
 /* ================= STORAGE ================= */
 
