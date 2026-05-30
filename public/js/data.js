@@ -7,7 +7,6 @@ const FACTIONS = [
     color: '#ff0000',
     desc: "pizda123",
 
-    webhook: 'https://discord.com/api/webhooks/1506379285898985635/5g2imypeguUg_2eXyDrdyCLJuRAYDghkY9Ak5NCr7GSHm85mhcWXyf2Y82ywUvbbuJbi',
     roleId:'',
 
     questions: [
