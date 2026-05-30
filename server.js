@@ -2,16 +2,13 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Serwowanie plików z folderu głównego
-app.use(express.static(__dirname));
+// Teraz serwer wie, że tylko to, co w folderze 'public', jest widoczne
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Główny adres strony
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+// API - tutaj schowamy dane, które teraz masz w data.js
+app.get('/api/factions', (req, res) => {
+    // Zamiast czytać data.js, tutaj wyciągniemy dane z bazy MongoDB
+    res.json({ success: true, message: "Dane z bazy!" });
 });
 
-// Nasłuchiwanie na porcie, który przypisze Render
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Serwer działa na http://localhost:${port}`);
-});
+app.listen(process.env.PORT || 3000);
