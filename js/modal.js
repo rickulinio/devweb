@@ -1,104 +1,70 @@
-/* ─── MODAL.JS — WERSJA BACKENDOWA ─────────────────────────── */
-/* Podania idą przez /api/apply/:key — webhooki są tylko na serwerze. */
+/* ─── MODAL.JS — cooldown wyłącznie po stronie serwera ─────── */
 
-const APP_COOLDOWN_HOURS = 24;
 let cooldownInterval = null;
 
-function getCooldownKey(key) { return `appCooldown_${key}`; }
-function getDraftKey(key)    { return `draft_${key}`; }
+function getDraftKey(key) { return `draft_${key}`; }
 
-/* ── Cooldown helpers (serwer jest źródłem prawdy, localStorage to cache UI) ── */
-
-function getCachedCooldownExpiry(key) {
-  const saved = localStorage.getItem(getCooldownKey(key));
-  if (!saved) return null;
-  const expires = Number(saved);
-  if (Date.now() > expires) { localStorage.removeItem(getCooldownKey(key)); return null; }
-  return expires;
+/* ── Cooldown: pyta serwer, zwraca { cooldown, remainingMs } ── */
+async function fetchCooldown(key) {
+  try {
+    const res  = await fetch(`/api/cooldown/${key}`, { credentials: 'include' });
+    return await res.json(); // { cooldown: bool, remainingMs?: number }
+  } catch {
+    return { cooldown: false };
+  }
 }
 
-function hasCooldown(key) {
-  return getCachedCooldownExpiry(key) !== null;
-}
-
-function getRemainingTime(key) {
-  const expires = getCachedCooldownExpiry(key);
-  if (!expires) return null;
-  const diff = expires - Date.now();
-  if (diff <= 0) return null;
-  const hours   = Math.floor(diff / 1000 / 60 / 60);
-  const minutes = Math.floor((diff / 1000 / 60) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
+function msToReadable(ms) {
+  if (!ms || ms <= 0) return null;
+  const hours   = Math.floor(ms / 1000 / 60 / 60);
+  const minutes = Math.floor((ms / 1000 / 60) % 60);
+  const seconds = Math.floor((ms / 1000) % 60);
   return `${hours}h ${minutes}m ${seconds}s`;
 }
 
-function setCooldownCache(key) {
-  localStorage.removeItem(getDraftKey(key));
-  const expires = Date.now() + APP_COOLDOWN_HOURS * 60 * 60 * 1000;
-  localStorage.setItem(getCooldownKey(key), expires);
-}
-
-/* ── Synchronizacja cooldownu z serwerem ── */
-
-async function syncCooldown(key) {
-  try {
-    const res = await fetch(`/api/cooldown/${key}`, { credentials: 'include' });
-    const data = await res.json();
-    if (data.cooldown && data.remainingMs) {
-      const expires = Date.now() + data.remainingMs;
-      localStorage.setItem(getCooldownKey(key), expires);
-    } else {
-      localStorage.removeItem(getCooldownKey(key));
-    }
-  } catch {}
-}
-
-function startCooldownUpdater(key) {
+function startCooldownUpdater(key, initialMs) {
   if (cooldownInterval) clearInterval(cooldownInterval);
+
+  let remaining = initialMs;
 
   cooldownInterval = setInterval(() => {
     const btn   = document.getElementById('m-sub');
-    const alert = document.getElementById('m-alert');
+    const alertEl = document.getElementById('m-alert');
 
-    if (!btn || !alert) {
+    if (!btn || !alertEl) { clearInterval(cooldownInterval); cooldownInterval = null; return; }
+
+    remaining -= 1000;
+    if (remaining <= 0) {
+      btn.disabled      = false;
+      btn.textContent   = 'Wyślij Podanie';
+      alertEl.className = 'f-alert';
+      alertEl.textContent = '';
       clearInterval(cooldownInterval);
       cooldownInterval = null;
       return;
     }
 
-    if (!hasCooldown(key)) {
-      btn.disabled      = false;
-      btn.textContent   = 'Wyślij Podanie';
-      alert.className   = 'f-alert';
-      alert.textContent = '';
-      clearInterval(cooldownInterval);
-      cooldownInterval  = null;
-      return;
-    }
-
-    const remaining       = getRemainingTime(key);
-    btn.textContent       = `Cooldown: ${remaining}`;
-    alert.textContent     = `Możesz wysłać kolejne podanie za ${remaining}.`;
-    btn.disabled          = true;
+    const readable       = msToReadable(remaining);
+    btn.textContent      = `Cooldown: ${readable}`;
+    btn.disabled         = true;
+    alertEl.textContent  = `Możesz wysłać kolejne podanie za ${readable}.`;
   }, 1000);
 }
 
 /* ── Otwarcie modalu ── */
-
 async function openModal(key) {
   const faction = FACTIONS.find(f => f.key === key);
   if (!faction) return;
 
-  // Synchronizujemy cooldown z serwerem przed otwarciem
-  await syncCooldown(key);
-
-  const user      = getUser(); // z auth.js
-  const draft     = JSON.parse(localStorage.getItem(getDraftKey(key)) || '{}');
-  const modalBox  = document.getElementById('modalBox');
-  const sections  = faction.questions || [];
-  const cooldown  = hasCooldown(key);
-  const remaining = getRemainingTime(key);
+  const user = getUser();
+  const draft = JSON.parse(localStorage.getItem(getDraftKey(key)) || '{}');
+  const modalBox = document.getElementById('modalBox');
+  const sections = faction.questions || [];
   const isNotLoggedIn = !user;
+
+  // Pobieramy cooldown z serwera
+  const { cooldown, remainingMs } = await fetchCooldown(key);
+  const remaining = msToReadable(remainingMs);
 
   modalBox.innerHTML = `
     <div class="modal-content">
@@ -131,14 +97,15 @@ async function openModal(key) {
             ${s.items.map(q => {
               const val   = draft[q.id] || '';
               const limit = q.maxLength || 500;
+              const dis   = (cooldown || isNotLoggedIn) ? 'disabled' : '';
               return `
               <div class="fg">
                 <label class="fl">${q.label}${q.required ? ' *' : ''}</label>
                 ${q.type === 'textarea'
-                  ? `<textarea class="fta" id="m-${q.id}" maxlength="${limit}" ${q.required ? 'required' : ''} ${(cooldown || isNotLoggedIn) ? 'disabled' : ''}>${val}</textarea>`
-                  : `<input type="text" class="fi" id="m-${q.id}" maxlength="${limit}" ${q.required ? 'required' : ''} ${(cooldown || isNotLoggedIn) ? 'disabled' : ''} value="${val}">`
+                  ? `<textarea class="fta" id="m-${q.id}" maxlength="${limit}" ${q.required ? 'required' : ''} ${dis}>${val}</textarea>`
+                  : `<input type="text" class="fi" id="m-${q.id}" maxlength="${limit}" ${q.required ? 'required' : ''} ${dis} value="${val}">`
                 }
-                <div class="char-counter" style="font-size: 11px; opacity: 0.5; text-align: right; margin-top: 4px;">
+                <div class="char-counter" style="font-size:11px;opacity:.5;text-align:right;margin-top:4px;">
                   <span class="curr-len">${val.length}</span> / ${limit} znaków
                 </div>
               </div>
@@ -157,21 +124,19 @@ async function openModal(key) {
     </div>
   `;
 
+  // Autosave draft
   modalBox.querySelectorAll('.fi, .fta').forEach(el => {
-    el.addEventListener('input', (e) => {
-      const field      = e.target;
-      const parent     = field.closest('.fg');
+    el.addEventListener('input', e => {
+      const field = e.target;
+      const parent = field.closest('.fg');
       const counterSpan = parent.querySelector('.curr-len');
-      const max        = parseInt(field.getAttribute('maxlength'));
-      const currentLen = field.value.length;
+      const max = parseInt(field.getAttribute('maxlength'));
+      counterSpan.textContent = field.value.length;
+      parent.querySelector('.char-counter').classList.toggle('limit-reached', field.value.length > max * 0.9);
 
-      counterSpan.textContent = currentLen;
-      if (currentLen > max * 0.9) parent.querySelector('.char-counter').classList.add('limit-reached');
-      else parent.querySelector('.char-counter').classList.remove('limit-reached');
-
-      const currentDraft = JSON.parse(localStorage.getItem(getDraftKey(key)) || '{}');
-      currentDraft[field.id.replace('m-', '')] = field.value;
-      localStorage.setItem(getDraftKey(key), JSON.stringify(currentDraft));
+      const d = JSON.parse(localStorage.getItem(getDraftKey(key)) || '{}');
+      d[field.id.replace('m-', '')] = field.value;
+      localStorage.setItem(getDraftKey(key), JSON.stringify(d));
     });
   });
 
@@ -180,7 +145,8 @@ async function openModal(key) {
   modalBg.classList.add('show');
   document.body.style.overflow = 'hidden';
   initTabs();
-  if (cooldown) startCooldownUpdater(key);
+
+  if (cooldown && remainingMs) startCooldownUpdater(key, remainingMs);
 }
 
 function initTabs() {
@@ -197,8 +163,7 @@ function initTabs() {
   });
 }
 
-/* ── Wysyłanie podania przez backend ── */
-
+/* ── Wysyłanie podania ── */
 async function sendApp(key) {
   const user = getUser();
   if (!user) return;
@@ -212,17 +177,13 @@ async function sendApp(key) {
   alertEl.textContent = 'Wysyłanie...';
   alertEl.className   = 'f-alert';
 
-  // Walidacja pól
   let missing = false;
   faction.questions.forEach(section => {
     section.items.forEach(q => {
       const el = document.getElementById(`m-${q.id}`);
       if (el) {
         el.classList.remove('err');
-        if (q.required && !el.value.trim()) {
-          missing = true;
-          el.classList.add('err');
-        }
+        if (q.required && !el.value.trim()) { missing = true; el.classList.add('err'); }
       }
     });
   });
@@ -235,47 +196,42 @@ async function sendApp(key) {
 
   btn.disabled = true;
 
-  // Zbieramy pola (bez danych użytkownika — serwer je dodaje sam)
   const fields = [];
   faction.questions.forEach(section => {
     section.items.forEach(q => {
       const el = document.getElementById(`m-${q.id}`);
-      fields.push({
-        name:  `${section.section} • ${q.label}`,
-        value: el ? (el.value.trim() || 'Brak') : 'Brak'
-      });
+      fields.push({ name: `${section.section} • ${q.label}`, value: el ? (el.value.trim() || 'Brak') : 'Brak' });
     });
   });
 
   try {
-    // Wysyłamy do naszego backendu — nie bezpośrednio do webhooka Discord
     const res = await fetch(`/api/apply/${key}`, {
       method:      'POST',
       credentials: 'include',
       headers:     { 'Content-Type': 'application/json' },
-      body:        JSON.stringify({
-        fields,
-        factionName:  faction.name,
-        factionColor: faction.color
-      })
+      body:        JSON.stringify({ fields, factionName: faction.name, factionColor: faction.color })
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      setCooldownCache(key);
-      startCooldownUpdater(key);
+      localStorage.removeItem(getDraftKey(key)); // czyścimy draft po sukcesie
       alertEl.className   = 'f-alert success';
       alertEl.textContent = 'Podanie zostało wysłane!';
       btn.textContent     = 'Wysłano!';
+
+      // Pobieramy cooldown z serwera i startujemy licznik
+      const { remainingMs } = await fetchCooldown(key);
+      if (remainingMs) startCooldownUpdater(key, remainingMs);
+
       setTimeout(() => closeModal(), 3000);
+
     } else if (res.status === 429) {
-      // Cooldown z serwera
       alertEl.className   = 'f-alert err';
-      alertEl.textContent = 'Cooldown nadal trwa. Spróbuj ponownie za jakiś czas.';
-      btn.disabled        = true;
-      await syncCooldown(key);
-      startCooldownUpdater(key);
+      alertEl.textContent = 'Cooldown nadal trwa.';
+      const { remainingMs } = await fetchCooldown(key);
+      if (remainingMs) startCooldownUpdater(key, remainingMs);
+
     } else {
       throw new Error(data.error || `Status ${res.status}`);
     }
@@ -283,15 +239,12 @@ async function sendApp(key) {
   } catch (err) {
     alertEl.className   = 'f-alert err';
     alertEl.textContent = 'Błąd: ' + err.message;
-    btn.disabled        = false;
+    btn.disabled = false;
   }
 }
 
 function closeModal() {
-  if (cooldownInterval) {
-    clearInterval(cooldownInterval);
-    cooldownInterval = null;
-  }
+  if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
   const modalBg = document.getElementById('modalBg');
   modalBg.classList.add('closing');
   setTimeout(() => {

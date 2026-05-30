@@ -1,23 +1,23 @@
 /* ================= AUTH.JS — WERSJA BACKENDOWA ================= */
-/* Logowanie odbywa się przez serwer (Authorization Code Flow).    */
-/* Żaden sekret ani webhook URL nie trafia do przeglądarki.        */
 
-/* ================= STORAGE (session po stronie serwera) ================= */
-
-// Użytkownik jest przechowywany w sesji serwera, nie w localStorage.
-// Tutaj trzymamy tylko lokalną kopię pobraną z /api/me.
 let _cachedUser = null;
+let _authReady  = false;
+
+// Promise który resolwuje się gdy auth jest gotowy — inne skrypty mogą na to czekać
+let _authReadyResolve;
+const authReady = new Promise(resolve => { _authReadyResolve = resolve; });
 
 async function fetchCurrentUser() {
   try {
     const res = await fetch('/api/me', { credentials: 'include' });
     const data = await res.json();
     _cachedUser = data.user || null;
-    return _cachedUser;
   } catch {
     _cachedUser = null;
-    return null;
   }
+  _authReady = true;
+  _authReadyResolve(_cachedUser);
+  return _cachedUser;
 }
 
 function getUser() {
@@ -32,29 +32,19 @@ async function logout() {
   triggerAuthUpdate();
 }
 
-/* ================= EVENT ================= */
-
 function triggerAuthUpdate() {
   window.dispatchEvent(new Event('auth:update'));
 }
 
-/* ================= LOGIN URL ================= */
-
 function getDiscordLoginURL() {
-  // Przekierowanie do naszego backendu, który obsługuje całe OAuth
   return '/auth/discord';
 }
 
-/* ================= INIT ================= */
-
+/* ── Init: pobierz użytkownika i dopiero wtedy odpal auth:update ── */
 window.addEventListener('load', async () => {
   const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) loginBtn.href = getDiscordLoginURL();
 
-  if (loginBtn) {
-    loginBtn.href = getDiscordLoginURL();
-  }
-
-  // Pobieramy użytkownika z serwera (sprawdzenie sesji)
   await fetchCurrentUser();
-  triggerAuthUpdate();
+  triggerAuthUpdate(); // teraz _cachedUser jest już ustawiony
 });
