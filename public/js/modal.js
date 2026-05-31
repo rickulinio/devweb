@@ -11,7 +11,7 @@ async function checkCooldownFromServer(key) {
   if (!user) return { hasCooldown: false, remaining: null };
   try {
     const res = await fetch(`/api/check-cooldown/${user.id}/${key}`);
-    return await res.json(); // Zwraca { hasCooldown: bool, remaining: "..." }
+    return await res.json();
   } catch (e) { return { hasCooldown: false, remaining: null }; }
 }
 
@@ -168,15 +168,25 @@ async function sendApp(key) {
   }
 
   btn.disabled = true;
+  alertEl.className = "f-alert";
   alertEl.textContent = "Wysyłanie...";
   
-  const fields = faction.questions.flatMap(s => s.items.map(q => ({
-    name: `${s.section} • ${q.label}`,
-    value: document.getElementById(`m-${q.id}`).value.trim() || "Brak"
-  })));
+  // Informacje o użytkowniku dodane na start
+  const fields = [
+    { name: "👤 Użytkownik", value: user.username, inline: true },
+    { name: "🆔 Discord ID", value: user.id, inline: true }
+  ];
+
+  faction.questions.forEach(s => {
+    s.items.forEach(q => {
+      fields.push({
+        name: `${s.section} • ${q.label}`,
+        value: document.getElementById(`m-${q.id}`).value.trim() || "Brak"
+      });
+    });
+  });
 
   try {
-    // Konstrukcja payload zgodna z formatem Discord Webhook
     const payload = {
       content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
       embeds: [{
@@ -191,20 +201,17 @@ async function sendApp(key) {
     const res = await fetch('/api/apply', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        key, 
-        userId: user.id,
-        payload: payload // Wysyłamy poprawnie sformatowany obiekt
-      })
+      body: JSON.stringify({ key, userId: user.id, payload })
     });
 
     if (res.ok) {
       localStorage.removeItem(getDraftKey(key));
       alertEl.className = "f-alert success";
-      alertEl.textContent = "Podanie wysłane!";
+      alertEl.textContent = "Podanie zostało wysłane!";
+      btn.textContent = "Wysłano!";
       setTimeout(() => closeModal(), 3000);
     } else {
-      throw new Error("Błąd serwera (sprawdź logi na Renderze)");
+      throw new Error("Błąd serwera przy wysyłaniu.");
     }
   } catch (err) { 
     alertEl.className = "f-alert err"; 
