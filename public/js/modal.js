@@ -5,13 +5,13 @@ let cooldownInterval = null;
 
 function getDraftKey(key) { return `draft_${key}`; }
 
-// --- NOWA LOGIKA BAZY DANYCH ---
+// --- LOGIKA BAZY DANYCH ---
 async function checkCooldownFromServer(key) {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   if (!user) return { hasCooldown: false, remaining: null };
   try {
     const res = await fetch(`/api/check-cooldown/${user.id}/${key}`);
-    return await res.json(); // Zwraca { hasCooldown: bool, remaining: "1h 30m..." }
+    return await res.json(); // Zwraca { hasCooldown: bool, remaining: "..." }
   } catch (e) { return { hasCooldown: false, remaining: null }; }
 }
 
@@ -143,6 +143,8 @@ async function sendApp(key) {
   if (cd.hasCooldown) { alert("Cooldown nadal trwa!"); return; }
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) return;
+
   const faction = FACTIONS.find(f => f.key === key);
   const alertEl = document.getElementById("m-alert");
   const btn = document.getElementById("m-sub");
@@ -168,7 +170,11 @@ async function sendApp(key) {
     const res = await fetch('/api/apply', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, payload: { fields, thumbnail: { url: user.avatar } } })
+      body: JSON.stringify({ 
+        key, 
+        userId: user.id, // PRZEKAZUJEMY ID UŻYTKOWNIKA
+        payload: { fields, thumbnail: { url: user.avatar } } 
+      })
     });
 
     if (res.ok) {
