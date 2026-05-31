@@ -1,11 +1,11 @@
-/* ───────── MODAL.JS ───────── */
+/* ───────── OPEN MODAL ───────── */
 
 const APP_COOLDOWN_HOURS = 24;
 let cooldownInterval = null;
 
 function getDraftKey(key) { return `draft_${key}`; }
 
-// Sprawdzenie cooldownu przez serwer
+// Funkcja sprawdzająca cooldown w bazie danych przez serwer
 async function checkCooldownFromServer(key) {
     const user = JSON.parse(localStorage.getItem("user") || "null");
     if (!user) return false;
@@ -13,7 +13,53 @@ async function checkCooldownFromServer(key) {
         const response = await fetch(`/api/check-cooldown/${user.id}/${key}`);
         const data = await response.json();
         return data.hasCooldown;
-    } catch (e) { return false; }
+    } catch (e) {
+        console.error("Błąd sprawdzania cooldownu:", e);
+        return false;
+    }
+}
+
+function getRemainingTime(key) {
+    const saved = localStorage.getItem(`appCooldown_${key}`);
+    if (!saved) return null;
+    const diff = Number(saved) - Date.now();
+    if (diff <= 0) return null;
+    const hours = Math.floor(diff / 1000 / 60 / 60);
+    const minutes = Math.floor((diff / 1000 / 60) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+    return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+function setCooldown(key) {
+    localStorage.removeItem(getDraftKey(key));
+    const expires = Date.now() + APP_COOLDOWN_HOURS * 60 * 60 * 1000;
+    localStorage.setItem(`appCooldown_${key}`, expires);
+}
+
+function startCooldownUpdater(key) {
+    if (cooldownInterval) clearInterval(cooldownInterval);
+    cooldownInterval = setInterval(() => {
+        const btn = document.getElementById("m-sub");
+        const alert = document.getElementById("m-alert");
+        if (!btn || !alert) { clearInterval(cooldownInterval); cooldownInterval = null; return; }
+        
+        // Tutaj sprawdzamy czy nadal mamy cooldown
+        checkCooldownFromServer(key).then(hasCD => {
+            if (!hasCD) {
+                btn.disabled = false;
+                btn.textContent = "Wyślij Podanie";
+                alert.className = "f-alert";
+                alert.textContent = "";
+                clearInterval(cooldownInterval);
+                cooldownInterval = null;
+                return;
+            }
+            const remaining = getRemainingTime(key);
+            btn.textContent = `Cooldown: ${remaining || '...'}`;
+            alert.textContent = `Możesz wysłać kolejne podanie za ${remaining || '...'}.`;
+            btn.disabled = true;
+        });
+    }, 1000);
 }
 
 async function openModal(key) {
@@ -27,47 +73,59 @@ async function openModal(key) {
     
     const isCooldown = await checkCooldownFromServer(key);
     const isNotLoggedIn = !user;
+    const remaining = getRemainingTime(key);
 
     modalBox.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-head">
-                <div class="modal-icon">${faction.icon}</div>
-                <div>
-                    <div class="modal-title">${faction.name} — Podanie</div>
-                    <div class="modal-subtitle">Formularz rekrutacyjny</div>
+    <div class="modal-content">
+      <div class="modal-head">
+        <div class="modal-icon">${faction.icon}</div>
+        <div>
+          <div class="modal-title">${faction.name} — Podanie</div>
+          <div class="modal-subtitle">Formularz rekrutacyjny</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-user-profile ${user ? 'active' : 'login-required'}">
+        ${user ? `
+          <img src="${user.avatar}" alt="Avatar">
+          <div class="info">
+            <strong>${user.username}</strong>
+            <span>ID: ${user.id}</span>
+          </div>
+        ` : `<div class="login-msg">Aby uzupełnić podanie, musisz się zalogować.</div>`}
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          ${sections.map((s, i) => `<button class="modal-tab ${i === 0 ? "active" : ""}" data-tab="${s.section}">${s.section}</button>`).join("")}
+        </div>
+        ${sections.map((s, i) => `
+          <div class="modal-section ${i === 0 ? "active" : ""}" data-section="${s.section}">
+            ${s.items.map(q => {
+              const val = draft[q.id] || "";
+              const limit = q.maxLength || 500;
+              return `
+              <div class="fg">
+                <label class="fl">${q.label}${q.required ? " *" : ""}</label>
+                ${q.type === "textarea" 
+                  ? `<textarea class="fta" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(isCooldown || isNotLoggedIn) ? "disabled" : ""}>${val}</textarea>`
+                  : `<input type="text" class="fi" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(isCooldown || isNotLoggedIn) ? "disabled" : ""} value="${val}">`
+                }
+                <div class="char-counter" style="font-size: 11px; opacity: 0.5; text-align: right; margin-top: 4px;">
+                  <span class="curr-len">${val.length}</span> / ${limit} znaków
                 </div>
-                <button class="modal-close" onclick="closeModal()">✕</button>
-            </div>
-            <div class="modal-user-profile ${user ? 'active' : 'login-required'}">
-                ${user ? `<img src="${user.avatar}" alt="Avatar"><div class="info"><strong>${user.username}</strong><span>ID: ${user.id}</span></div>` : `<div class="login-msg">Aby uzupełnić podanie, musisz się zalogować.</div>`}
-            </div>
-            <div class="modal-body">
-                <div class="modal-tabs">${sections.map((s, i) => `<button class="modal-tab ${i === 0 ? "active" : ""}" data-tab="${s.section}">${s.section}</button>`).join("")}</div>
-                ${sections.map((s, i) => `
-                    <div class="modal-section ${i === 0 ? "active" : ""}" data-section="${s.section}">
-                        ${s.items.map(q => {
-                            const val = draft[q.id] || "";
-                            const limit = q.maxLength || 500;
-                            return `
-                            <div class="fg">
-                                <label class="fl">${q.label}${q.required ? " *" : ""}</label>
-                                ${q.type === "textarea" 
-                                    ? `<textarea class="fta" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(isCooldown || isNotLoggedIn) ? "disabled" : ""}>${val}</textarea>`
-                                    : `<input type="text" class="fi" id="m-${q.id}" maxlength="${limit}" ${q.required ? "required" : ""} ${(isCooldown || isNotLoggedIn) ? "disabled" : ""} value="${val}">`
-                                }
-                                <div class="char-counter" style="font-size: 11px; opacity: 0.5; text-align: right; margin-top: 4px;">
-                                    <span class="curr-len">${val.length}</span> / ${limit} znaków
-                                </div>
-                            </div>`}).join("")}
-                    </div>`).join("")}
-                <button class="fsub-btn" id="m-sub" onclick="sendApp('${key}')" ${(isCooldown || isNotLoggedIn) ? "disabled" : ""}>
-                    ${isCooldown ? "Cooldown aktywny" : (isNotLoggedIn ? "Zaloguj się" : "Wyślij Podanie")}
-                </button>
-                <div class="f-alert" id="m-alert"></div>
-            </div>
-        </div>`;
+              </div>
+            `}).join("")}
+          </div>
+        `).join("")}
+        <button class="fsub-btn" id="m-sub" onclick="sendApp('${key}')" ${(isCooldown || isNotLoggedIn) ? "disabled" : ""}>
+          ${isCooldown ? `Cooldown: ${remaining}` : (isNotLoggedIn ? "Zaloguj się" : "Wyślij Podanie")}
+        </button>
+        <div class="f-alert" id="m-alert">
+          ${isCooldown ? `Możesz wysłać kolejne podanie za ${remaining}.` : ""}
+        </div>
+      </div>
+    </div>`;
 
-    // Podpięcie zdarzeń do pól (liczniki i zapis draftu)
     modalBox.querySelectorAll('.fi, .fta').forEach(el => {
         el.addEventListener('input', (e) => {
             const field = e.target;
@@ -82,70 +140,86 @@ async function openModal(key) {
         });
     });
 
-    modalBox.querySelectorAll(".modal-tab").forEach(tab => {
+    const modalBg = document.getElementById("modalBg");
+    modalBg.classList.remove("closing");
+    modalBg.classList.add("show");
+    document.body.style.overflow = "hidden";
+    initTabs();
+    if (isCooldown) startCooldownUpdater(key);
+}
+
+function initTabs() {
+    const modal = document.getElementById("modalBox");
+    if (!modal) return;
+    modal.querySelectorAll(".modal-tab").forEach(tab => {
         tab.onclick = () => {
-            modalBox.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
-            modalBox.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active"));
+            const target = tab.dataset.tab;
+            modal.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
+            modal.querySelectorAll(".modal-section").forEach(s => s.classList.remove("active"));
             tab.classList.add("active");
-            modalBox.querySelector(`.modal-section[data-section="${tab.dataset.tab}"]`)?.classList.add("active");
+            modal.querySelector(`.modal-section[data-section="${target}"]`)?.classList.add("active");
         };
     });
-
-    document.getElementById("modalBg").classList.add("show");
-    document.body.style.overflow = "hidden";
 }
 
 async function sendApp(key) {
-    // Sprawdzenie cooldownu przed wysłaniem
-    if (await checkCooldownFromServer(key)) {
-        alert("Masz aktywny cooldown!");
-        return;
-    }
+    if (await checkCooldownFromServer(key)) return;
 
     const user = JSON.parse(localStorage.getItem("user") || "null");
     if (!user) return;
 
     const faction = FACTIONS.find(f => f.key === key);
-    const alertEl = document.getElementById("m-alert");
+    if (!faction) return;
+
+    const alert = document.getElementById("m-alert");
+    const btn = document.getElementById("m-sub");
     
-    // Walidacja
+    alert.textContent = "Wysyłanie...";
+    
     let missing = false;
     faction.questions.forEach(section => {
         section.items.forEach(q => {
             const el = document.getElementById(`m-${q.id}`);
-            if (q.required && !el.value.trim()) missing = true;
+            if (el && q.required && !el.value.trim()) { missing = true; el.classList.add("err"); }
         });
     });
 
-    if (missing) {
-        alertEl.textContent = "Uzupełnij wymagane pola.";
-        return;
-    }
+    if (missing) { alert.textContent = "Uzupełnij wszystkie wymagane pola."; return; }
 
-    const fields = faction.questions.flatMap(s => s.items.map(q => ({
-        name: `${s.section} • ${q.label}`,
+    btn.disabled = true;
+
+    const fields = faction.questions.flatMap(sec => sec.items.map(q => ({
+        name: `${sec.section} • ${q.label}`,
         value: document.getElementById(`m-${q.id}`).value.trim() || "Brak"
     })));
 
     try {
+        const payload = {
+            content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
+            embeds: [{ title: "📋 Podanie", color: parseInt(faction.color.replace("#", ""), 16), thumbnail: { url: user.avatar }, fields, timestamp: new Date().toISOString() }]
+        };
+
         const res = await fetch('/api/apply', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                key, 
-                payload: { embeds: [{ title: "📋 Podanie", fields, thumbnail: { url: user.avatar } }] } 
-            })
+            body: JSON.stringify({ key, payload })
         });
 
         if (res.ok) {
-            localStorage.removeItem(getDraftKey(key));
-            alertEl.textContent = "Wysłano!";
-            setTimeout(closeModal, 2000);
-        }
-    } catch (e) { alertEl.textContent = "Błąd wysyłania"; }
+            setCooldown(key);
+            alert.textContent = "Podanie zostało wysłane!";
+            setTimeout(() => closeModal(), 3000);
+        } else throw new Error("Błąd");
+    } catch (err) { alert.textContent = "Błąd: " + err.message; btn.disabled = false; }
 }
 
 function closeModal() {
-    document.getElementById("modalBg").classList.remove("show");
-    document.body.style.overflow = "";
+    if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+    const modalBg = document.getElementById("modalBg");
+    modalBg.classList.add("closing");
+    setTimeout(() => {
+        modalBg.classList.remove("show");
+        modalBg.classList.remove("closing");
+        document.body.style.overflow = "";
+    }, 300);
 }
