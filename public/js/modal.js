@@ -154,26 +154,47 @@ async function sendApp(key) {
     section.items.forEach(q => {
       const el = document.getElementById(`m-${q.id}`);
       el.classList.remove("err");
-      if (q.required && !el.value.trim()) { missing = true; el.classList.add("err"); }
+      if (q.required && !el.value.trim()) { 
+        missing = true; 
+        el.classList.add("err"); 
+      }
     });
   });
 
-  if (missing) { alertEl.className = "f-alert err"; alertEl.textContent = "Uzupełnij wymagane pola."; return; }
+  if (missing) { 
+    alertEl.className = "f-alert err"; 
+    alertEl.textContent = "Uzupełnij wymagane pola."; 
+    return; 
+  }
 
   btn.disabled = true;
+  alertEl.textContent = "Wysyłanie...";
+  
   const fields = faction.questions.flatMap(s => s.items.map(q => ({
     name: `${s.section} • ${q.label}`,
     value: document.getElementById(`m-${q.id}`).value.trim() || "Brak"
   })));
 
   try {
+    // Konstrukcja payload zgodna z formatem Discord Webhook
+    const payload = {
+      content: `<@&${faction.roleId}> 📥 Nowe podanie — **${faction.name}**`,
+      embeds: [{
+        title: "📋 Podanie",
+        color: parseInt(faction.color.replace("#", ""), 16),
+        thumbnail: { url: user.avatar },
+        fields: fields,
+        timestamp: new Date().toISOString()
+      }]
+    };
+
     const res = await fetch('/api/apply', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         key, 
-        userId: user.id, // PRZEKAZUJEMY ID UŻYTKOWNIKA
-        payload: { fields, thumbnail: { url: user.avatar } } 
+        userId: user.id,
+        payload: payload // Wysyłamy poprawnie sformatowany obiekt
       })
     });
 
@@ -182,8 +203,14 @@ async function sendApp(key) {
       alertEl.className = "f-alert success";
       alertEl.textContent = "Podanie wysłane!";
       setTimeout(() => closeModal(), 3000);
-    } else throw new Error("Błąd serwera");
-  } catch (err) { alertEl.className = "f-alert err"; alertEl.textContent = err.message; btn.disabled = false; }
+    } else {
+      throw new Error("Błąd serwera (sprawdź logi na Renderze)");
+    }
+  } catch (err) { 
+    alertEl.className = "f-alert err"; 
+    alertEl.textContent = err.message; 
+    btn.disabled = false; 
+  }
 }
 
 function closeModal() {
