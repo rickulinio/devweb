@@ -7,7 +7,6 @@ const FACTIONS = [
     color: '#ff0000',
     desc: "Dołącz do grona administracji Vast Roleplay.",
 
-    webhook: 'https://discord.com/api/webhooks/1508582508504027259/po5hxUh6WT83gMb6HOb8avONROkbjvNbVyVwcGUZ9XoTnN3hHfYFgIQLwrUQoE330_9z',
     roleId: '1507803370704863454',
 
     questions: [
@@ -75,7 +74,6 @@ const FACTIONS = [
     color: '#60a5fa',
     desc: 'Los Santos Police Department. Stój na straży prawa i porządku w mieście.',
 
-    webhook: 'https://discord.com/api/webhooks/1506328895404900503/wIwVgPNHyI_ito5kNt3HlMLBufv04g1lh23H80ia4G8vbJZ-wM11aM-QT2eIgH8eSK_m',
     roleId: '1480310621911257240',
 
     questions: [
@@ -184,7 +182,6 @@ const FACTIONS = [
     color: '#2dd4bf',
     desc: "Los Santos Sheriff's Department. Ochrona spokoju poza miastem.",
 
-    webhook: 'https://discord.com/api/webhooks/1506332001198936098/U999ruVpvlqP5xpvpL3Bil5l0JRZtUPqAu8jSfEVuBGZ9tRfEteFGv-Vm6Vuxce4DzGe',
     roleId: '1480310711878946916',
 
     questions: [
@@ -287,7 +284,6 @@ const FACTIONS = [
     color: '#34d399',
     desc: 'Emergency Medical Services. Ratuj życia na ulicach Los Santos każdego dnia.',
 
-    webhook: 'https://discord.com/api/webhooks/1506329264566435971/kqTjdohoE5Fi_9aUSES7vN4Xjhiz_9d6N1I9RykDPOiv0nStuWvB4Fo-6Id-zi7N0-B4',
     roleId: '1480310757697654855',
 
     questions: [
@@ -402,7 +398,6 @@ const FACTIONS = [
   color: '#f97316',
   desc: 'Dołącz do ekipy profesjonalnych mechaników i rozwijaj swoją karierę motoryzacyjną.',
 
-  webhook: 'https://discord.com/api/webhooks/1506329960149946378/aEzWzMia00ZxzTSwkV35EjAAr7NpKpi13d8FVJxsJ3zf-x6nzpa4We_ZXk-k834VNglG',
   roleId: '1480310820956016712',
 
   questions: [
@@ -488,7 +483,6 @@ const FACTIONS = [
     color: '#f87171',
     desc: 'Organizacja przestępcza. Buduj imperium i władaj ulicami od zera.',
 
-    webhook: 'https://discord.com/api/webhooks/1506329541235310602/yPzfVU3tGYHobc5-q-fibLGOEoZTWBr9wdfoXFpeVieJ_bHfaxDEbI273IVq19mxVB4O',
     roleId: '1485660946725601310',
 
     questions: [
@@ -562,7 +556,6 @@ const FACTIONS = [
     color: '#caa35e',
     desc: "Załóż firmę tutaj!",
 
-    webhook: 'https://discord.com/api/webhooks/1509270202318192640/7WTh4gmZDL2MBwWkR8EyUf-GQ-bMAKrcjepngr7B5Q5e-EsWc8T9tKx7Py_ktlYWJv96',
     roleId: '1480310121707077753',
 
     questions: [
