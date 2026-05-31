@@ -173,8 +173,8 @@ async function sendApp(key) {
   
   // Informacje o użytkowniku dodane na start
   const fields = [
-    { name: "👤 Użytkownik", value: user.username, inline: true },
-    { name: "🆔 Discord ID", value: user.id, inline: true }
+    { name: "Użytkownik", value: user.username, inline: true },
+    { name: "Discord ID", value: user.id, inline: true }
   ];
 
   faction.questions.forEach(s => {
