@@ -1,0 +1,5 @@
+body { background: #0f172a; color: white; font-family: sans-serif; }
+#admin-nav { display: flex; gap: 10px; padding: 20px; background: #1e293b; }
+.faction-card { background: #1e293b; padding: 20px; margin: 10px; border-radius: 8px; }
+input, textarea { width: 100%; background: #0f172a; color: white; border: 1px solid #334155; padding: 10px; margin: 5px 0; }
+button { cursor: pointer; padding: 10px 20px; background: #3b82f6; border: none; color: white; border-radius: 5px; }
